@@ -1,0 +1,11 @@
+[
+  {
+    "namespace": "nativeTest",
+    "functions": [
+      { "name": "setup", "type": "function", "async": true, "parameters": [] },
+      { "name": "inspect", "type": "function", "async": true, "parameters": [] },
+      { "name": "setFailingDestination", "type": "function", "async": true, "parameters": [{ "name": "fail", "type": "boolean" }] },
+      { "name": "finish", "type": "function", "async": true, "parameters": [{ "name": "result", "type": "any" }] }
+    ]
+  }
+]

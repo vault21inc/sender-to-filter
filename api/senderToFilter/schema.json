@@ -1,0 +1,102 @@
+[
+  {
+    "namespace": "senderToFilter",
+    "description": "Add sender conditions to compatible Thunderbird filters.",
+    "types": [
+      {
+        "id": "Folder",
+        "type": "object",
+        "properties": {
+          "accountId": { "type": "string" },
+          "path": { "type": "string" }
+        }
+      },
+      {
+        "id": "Condition",
+        "type": "object",
+        "properties": {
+          "op": { "type": "string", "enum": ["is", "contains"] },
+          "value": { "type": "string" }
+        }
+      },
+      {
+        "id": "Target",
+        "type": "object",
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "name": { "type": "string" }
+        }
+      },
+      {
+        "id": "Reason",
+        "type": "string",
+        "enum": ["temporary", "unparseable", "match-all", "grouped", "and-logic", "no-terms", "duplicate-name"]
+      },
+      {
+        "id": "FilterInfo",
+        "type": "object",
+        "properties": {
+          "index": { "type": "integer" },
+          "name": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "eligible": { "type": "boolean" },
+          "reason": { "$ref": "Reason", "optional": true },
+          "present": { "type": "string", "enum": ["all", "some", "none"] }
+        }
+      },
+      {
+        "id": "AddResult",
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["ok", "not-found", "ineligible", "error"] },
+          "added": { "type": "array", "items": { "type": "string" } },
+          "existing": { "type": "array", "items": { "type": "string" } },
+          "reason": { "$ref": "Reason", "optional": true },
+          "message": { "type": "string", "optional": true }
+        }
+      }
+    ],
+    "functions": [
+      {
+        "name": "listFilters",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          { "name": "folder", "$ref": "Folder" },
+          { "name": "conditions", "type": "array", "items": { "$ref": "Condition" } }
+        ],
+        "returns": { "type": "array", "items": { "$ref": "FilterInfo" } }
+      },
+      {
+        "name": "addConditions",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          { "name": "folder", "$ref": "Folder" },
+          { "name": "target", "$ref": "Target" },
+          { "name": "conditions", "type": "array", "items": { "$ref": "Condition" } }
+        ],
+        "returns": { "$ref": "AddResult" }
+      },
+      {
+        "name": "openNewFilter",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          { "name": "windowId", "type": "integer" },
+          { "name": "folder", "$ref": "Folder" },
+          { "name": "emailAddress", "type": "string" }
+        ]
+      },
+      {
+        "name": "openFilterManager",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          { "name": "windowId", "type": "integer" },
+          { "name": "folder", "$ref": "Folder" }
+        ]
+      }
+    ]
+  }
+]

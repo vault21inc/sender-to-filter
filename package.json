@@ -1,0 +1,13 @@
+{
+  "name": "sender-to-filter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A Thunderbird MailExtension for adding senders to existing filters.",
+  "license": "MPL-2.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check": "node --check background.js && node --check api/senderToFilter/implementation.js",
+    "build": "bash scripts/build.sh"
+  }
+}
