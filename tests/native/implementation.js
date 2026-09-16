@@ -195,8 +195,117 @@
 
   exports.nativeTest = class extends ExtensionCommon.ExtensionAPI {
     getAPI(context) {
+      let draftDriver = null;
       return { nativeTest: {
-        checkFilterTags,
+        async checkSharedSpace() {
+          const profile = await assertDisposable(), scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared-space.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.checkSharedSpace(context, profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async setupSharedRunFixtures() {
+          const profile = await assertDisposable(), scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.setupSharedRunFixtures(profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async checkSharedManualRun(accountIds) {
+          const profile = await assertDisposable(), scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared-run.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.checkSharedManualRun(context, accountIds, profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async checkEnabledSharedRun(accountIds) {
+          const profile = await assertDisposable(), scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared-run.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.checkEnabledSharedRun(context, accountIds, profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async checkSharedFilterIndicators(accountIds) {
+          const profile = await assertDisposable();
+          const scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/filter-list.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.checkSharedFilterIndicators(context, accountIds, profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async armSharedDraft(mode) {
+          await assertDisposable();
+          const { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
+          const id = "stf-production-draft-test";
+          if (draftDriver) ExtensionSupport.unregisterWindowListener(id);
+          draftDriver = { mode, opened: false, error: null };
+          ExtensionSupport.registerWindowListener(id, {
+            chromeURLs: ["chrome://messenger/content/FilterEditor.xhtml"],
+            onLoadWindow(win) {
+              setTimeout(() => {
+                draftDriver.opened = true;
+                try {
+                  win.document.getElementById("filterName").value += " edited";
+                  if (mode === "accept") win.document.querySelector("dialog").acceptDialog();
+                  else if (mode === "cancel") win.document.querySelector("dialog").cancelDialog();
+                  else win.close();
+                } catch (error) { draftDriver.error = String(error); win.close(); }
+                ExtensionSupport.unregisterWindowListener(id);
+              }, 0);
+            },
+          });
+        },
+        async checkFilterTags() {
+          try { return await checkFilterTags(); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async setupSharedProduction() {
+          const profile = await assertDisposable();
+          const scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.setupSharedProduction(profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
+        async duplicateSharedProduction(accountId) {
+          await assertDisposable();
+          const scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          scope.duplicateSharedProduction(accountId);
+        },
+        async sharedPhase() {
+          const profile = await assertDisposable();
+          return {
+            version: Services.appinfo.version,
+            phase: !Services.prefs.getBoolPref("sender-to-filter.test.shared", false) ? "disabled" :
+              await IOUtils.exists(PathUtils.join(profile, "shared-native-expected.json")) ? "restart" : "seed",
+          };
+        },
+        async checkSharedPrerequisites(phase) {
+          const profile = await assertDisposable();
+          if (!Services.prefs.getBoolPref("sender-to-filter.test.shared", false) || !["seed", "restart"].includes(phase)) {
+            throw new Error("Shared checks require --shared and a known phase.");
+          }
+          try {
+            const scope = { ChromeUtils, Ci, Cc, Cu, Services };
+            // Match Thunderbird's Experiment loader for this fixed bundled
+            // resource. No caller-supplied script URI is accepted.
+            Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared.js"), {
+              target: scope, charset: "UTF-8", allowUnsafeURL: true,
+            });
+            return await scope.runSharedNative(profile, phase);
+          } catch (error) {
+            return { ok: false, phase, checks: [], error: `Shared harness load: ${error}`, stack: error?.stack };
+          }
+        },
         async setup() {
           await assertDisposable();
           Services.io.offline = true;

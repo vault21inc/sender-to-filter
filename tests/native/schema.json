@@ -2,11 +2,112 @@
   {
     "namespace": "nativeTest",
     "functions": [
-      { "name": "checkFilterTags", "type": "function", "async": true, "parameters": [] },
-      { "name": "setup", "type": "function", "async": true, "parameters": [] },
-      { "name": "inspect", "type": "function", "async": true, "parameters": [] },
-      { "name": "setFailingDestination", "type": "function", "async": true, "parameters": [{ "name": "fail", "type": "boolean" }] },
-      { "name": "finish", "type": "function", "async": true, "parameters": [{ "name": "result", "type": "any" }] }
+      { "name": "checkSharedSpace", "type": "function", "async": true, "parameters": [] },
+      { "name": "setupSharedRunFixtures", "type": "function", "async": true, "parameters": [] },
+      { "name": "checkSharedManualRun", "type": "function", "async": true,
+        "parameters": [{ "name": "accountIds", "type": "array", "items": { "type": "string" } }] },
+      { "name": "checkEnabledSharedRun", "type": "function", "async": true,
+        "parameters": [{ "name": "accountIds", "type": "array", "items": { "type": "string" } }] },
+      {
+        "name": "checkSharedFilterIndicators",
+        "type": "function",
+        "async": true,
+        "parameters": [{ "name": "accountIds", "type": "array", "items": { "type": "string" } }]
+      },
+      {
+        "name": "checkFilterTags",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "sharedPhase",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "checkSharedPrerequisites",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "phase",
+            "type": "string",
+            "enum": [
+              "seed",
+              "restart"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "setup",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "inspect",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "setFailingDestination",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "fail",
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "name": "finish",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "result",
+            "type": "any"
+          }
+        ]
+      },
+      {
+        "name": "setupSharedProduction",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "armSharedDraft",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "mode",
+            "type": "string",
+            "enum": [
+              "accept",
+              "cancel",
+              "close"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "duplicateSharedProduction",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "accountId",
+            "type": "string"
+          }
+        ]
+      }
     ]
   }
 ]
