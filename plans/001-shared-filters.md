@@ -1,10 +1,14 @@
 # Plan 001: Keep complete filters synchronized across chosen accounts
 
-**Status:** TODO — planning only
+**Status:** IMPLEMENTED — 1.2.0 local candidate. All seven source/package steps are complete; remaining interactive, mail-delivery and platform qualification is listed in VALIDATION.md.
 
 **Project:** /Users/thedaego/development/sender-to-filter
 
 **Planned at:** commit c831217176ac46b2e317d72253196d88b5736a81, September 12, 2026
+
+**Baseline refreshed:** commit 45502831acd1e96d2d35343c0e88e28cdfafde68, September 16, 2026; version 1.1.0.
+
+**Feature package:** 1.2.0, built locally after source, model, native integration and package checks. This is not a publication or normal-profile installation claim.
 
 **Category / priority:** Feature / P2
 
@@ -12,7 +16,33 @@
 
 **Dependencies:** None; complete the native feasibility gate in Step 1 before implementing synchronization.
 
-The user selected **complete-rule synchronization**, including actions, with a destination-folder choice for each account. This plan specifies that feature; it does not authorize executing it during the planning task.
+The user selected **complete-rule synchronization**, including actions, with a destination-folder choice for each account. On September 16, 2026, the user authorized refreshing this baseline and beginning implementation. Start with the native feasibility gate; commits, pushes, publication, and installation in a normal profile remain outside this work.
+
+## Implementation completion record — September 16, 2026
+
+The baseline and incremental Step 1/2 evidence below are historical checkpoints. The final runtime loads and packages the model, coordinator, native adapter and manager. Current validation commands and results are in `VALIDATION.md`.
+
+| Step | Completed source and evidence |
+|---|---|
+| 1 — Native prerequisite gate | Offline, marked disposable profiles; lossless scratch inspection; independent IMAP/POP lists; full native persistence; detached editor behavior; process restart. The macOS runner now also copies the app and excludes updater executables before launch. |
+| 2 — Portable model | Strict schemas, exact descriptions/ownership, independent folder slots, SHA-256 snapshots, bounded intent/checkpoint growth, deterministic recovery and marker-only unlink. |
+| 3 — Native adapter | `api/senderToFilter/shared-native.js` and `shared.js`; explicit API schema; standard account/backend checks; scope/action validation; live/disk conflict detection; synchronous final account recheck/save/readback; rollback/uncertainty; ordinary API ownership guard. |
+| 4 — Coordinator | `lib/shared-coordinator.js`; shared/ordinary write queue; durable intent before saves; per-account checkpoints; startup reconciliation; bounded dependency-event retries; read-only scans; stale-preview/revision protection; trusted manager messages. |
+| 5 — Manager | `options/shared-filters.*`; create/link/placement/destination previews, including numbered account filter lists with the new or linked copy highlighted; detached native draft editing; per-account status; restore/import/relink/recreate; explicit duplicate cleanup and unavailable-member removal; localized, text-only rendering. Six page/coordinator integration tests plus light/dark/narrow browser inspection. Native Message Filters shared-copy labels and manual-run controls have eight lifecycle/unit tests and 39 additional native checks on 156. |
+| 6 — Sender integration | One row per group, account count and all-current checkbox semantics, mixed-account shared selections, revision-safe clicks and preserved generation/window/hide ordering. Successful members of partial operations count correctly in notifications. |
+| 7 — Package and docs | Version 1.2.0, runtime allowlists, actual-XPI inventory/content test, README/action compatibility table, changelog and versioned native evidence. Manual/platform qualification remains separately identified. |
+
+**User-requested extensions:** The native manual-run button is labelled **Run selected filters (N)** and previews the highlighted names and targets. The enabled column is labelled **Run automatically**. A separate **Run all enabled filters (N)** action covers the current account's full list, including filters hidden by search, without changing selection, flags or saved rules. Both actions use the prechecked shared-account scope checkbox: shared filters run in each linked Inbox; ordinary filters stay on the chosen folder. Unchecking uses only the chosen folder. The native service uses each account's verified copy, destinations and local order, after a complete preflight. Progress, Stop and partial-failure reporting do not retry message actions or change synchronization state. Four controller tests, one background bridge test and actual synthetic POP message execution cover cross-account execution; local enabled runs also support Stop. A filter icon in the Spaces Toolbar opens the manager in a tab, with light/dark variants and native tab reuse; eight native assertions cover opening, returning, closing/reopening and restart. Current totals are 110 Node, eight runner and 147 native checks on 156; ESR's earlier 100-check results predate the native-list, manual-run and sidebar extensions.
+
+Implementation details discovered in native runs:
+
+- ESR 140 uses older incoming-server property names; the identity adapter accepts both spellings without changing the resulting identity data.
+- Optional Experiment object properties use `omit-key-if-missing`; Thunderbird’s default null insertion must not alter canonical snapshots or create false error fields.
+- Native XPCOM constants load lazily. The action adapter resolves its known constant names explicitly so fresh-process startup matches an already-used application.
+- IMAP test folders use the native persistent client-folder API; adding a folder object alone does not create a restartable fixture.
+- Normalized rules-file paths reject symbolic aliases. On macOS/Linux, ambiguous same-size/same-mtime pairs receive a synchronous, argument-only `/bin/test … -ef …` device/inode check. No shell or installed helper is involved. If physical identity cannot be established on another platform, ambiguous pairs are blocked; Windows/Linux runtime validation is still pending.
+- A reviewed duplicate repair records the selected copy plus complete before snapshots of extra copies. One native save updates the selected copy and removes only the extra ownership markers. A changed duplicate invalidates the preview. Saved-after recovery verifies the cleanup and does not repeat the save.
+- Native operation targets may carry an optional `cleanup: ReplicaSnapshot[]` for that explicit repair/unlink. The selected and cleanup positions are distinct; account/group/member bindings and intent size include every copy. Ordinary updates cannot introduce cleanup.
 
 ## 1. Outcome and product decisions
 
@@ -45,35 +75,39 @@ Decisions:
 
 ## 2. Verified baseline and load-bearing source facts
 
-The checkout was clean at the commit above before writing this plan. There is one commit, “init,” and no existing plans directory. The current extension is version 1.0.0, Manifest V2, targeting Thunderbird 140–155. It has no npm dependencies or install step.
+The checkout was clean at refreshed baseline 45502831acd1e96d2d35343c0e88e28cdfafde68. Since the original c831217 baseline, version 1.1.0 added native filter-editor tag creation and its tests/documentation; commit 4550283 added this plan. The refreshed baseline used Manifest V2 and targeted Thunderbird 140–155; the implemented candidate extends the maximum to 156 after native verification. It has no npm dependencies or install step. Preserve the existing tag controls and their lifecycle behavior during shared-filter work.
 
-Current verification performed for this plan:
+Baseline verification repeated on September 16, 2026 before implementation:
 
 - npm run check: passed.
-- npm test: 31 tests passed.
-- No build, native-profile mutation, or interactive Thunderbird test was performed during planning.
-- Existing VALIDATION.md records 13 native checks on 155.0.1 from the preceding implementation task. Those checks cover the original single-account feature, not this proposed feature.
+- npm test: 33 tests passed.
+- Installed Thunderbird: 155.0.1. No build or native run was needed for the baseline refresh; implementation evidence is recorded separately below and in VALIDATION.md.
+- Existing VALIDATION.md records 24 native checks on 155.0.1, covering the original 13 sender checks plus native tag creation. Those checks do not establish shared-filter feasibility. ESR 140/153 runtime checks were pending at baseline; later results are recorded in VALIDATION.md.
+- No shared model/coordinator, shared native adapter, manager page, shared menu, or shared-specific tests exist at the refreshed baseline.
 
-### Current implementation
+### Baseline implementation
+
+Source locations below refer to the refreshed baseline commit, before the Step 1 harness changes.
 
 | File | Relevant behavior |
 |---|---|
-| /Users/thedaego/development/sender-to-filter/background.js:116 | Selection collects up to 100 messages and rejects mixed-account selections at lines 133–136. |
-| /Users/thedaego/development/sender-to-filter/background.js:190 | One account's filters are loaded into an immutable, generation-checked menu snapshot. |
-| /Users/thedaego/development/sender-to-filter/background.js:238 | A click invokes one addConditions call for one filter. |
+| /Users/thedaego/development/sender-to-filter/background.js:119 | Selection collects up to 100 messages and rejects mixed-account selections at lines 137–139. |
+| /Users/thedaego/development/sender-to-filter/background.js:193 | One account's filters are loaded into an immutable, generation-checked menu snapshot. |
+| /Users/thedaego/development/sender-to-filter/background.js:241 | A click invokes one addConditions call for one filter. |
 | /Users/thedaego/development/sender-to-filter/api/senderToFilter/implementation.js:43 | Sender additions are restricted to a single condition or flat OR conditions. |
-| /Users/thedaego/development/sender-to-filter/api/senderToFilter/implementation.js:66 | Native lists are resolved from the selected message's current folder. |
-| /Users/thedaego/development/sender-to-filter/api/senderToFilter/implementation.js:104 | addConditions resolves by name/index, snapshots terms, appends synchronously, and restores terms on failure. |
-| /Users/thedaego/development/sender-to-filter/api/senderToFilter/schema.json | Only Folder, Condition, name/index Target, listing, adding, and native-dialog methods exist. |
+| /Users/thedaego/development/sender-to-filter/api/senderToFilter/implementation.js:67 | FilterTagControls manages New Tag controls and cleans up editor listeners on disable. |
+| /Users/thedaego/development/sender-to-filter/api/senderToFilter/implementation.js:217 | Native lists are resolved from the selected message's current folder. |
+| /Users/thedaego/development/sender-to-filter/api/senderToFilter/implementation.js:262 | addConditions resolves by name/index, snapshots terms, appends synchronously, and restores terms on failure. |
+| /Users/thedaego/development/sender-to-filter/api/senderToFilter/schema.json | Existing contracts cover Folder, Condition, name/index Target, listing, adding, native dialogs, and enableFilterTags; no shared methods exist. |
 | /Users/thedaego/development/sender-to-filter/tests/helpers.cjs:44 | Node tests execute production scripts in a VM with native/browser fakes. |
 | /Users/thedaego/development/sender-to-filter/scripts/test-thunderbird.py:46 | The native runner currently packages a hard-coded list of runtime paths. It must include new modules/pages. |
-| /Users/thedaego/development/sender-to-filter/scripts/build.sh:14 | Production packaging has a separate hard-coded runtime allowlist. |
+| /Users/thedaego/development/sender-to-filter/scripts/build.sh:12 | Production packaging has a separate hard-coded runtime allowlist. |
 | /Users/thedaego/development/sender-to-filter/sender-to-filter-implementation-plan.md | Historical rev 2 design. Preserve it; the implemented code and README correct some of its assumptions. |
 
 Current single-account mutation pattern:
 
 ~~~js
-// api/senderToFilter/implementation.js:130–145
+// api/senderToFilter/implementation.js:288–302
 // Keep validation, mutation and save synchronous within this API
 // call. There is no await that can interleave another batch.
 mutationStarted = true;
@@ -297,7 +331,7 @@ Ownership suffix:
 <exact user description> [stf-shared:v1:<group UUID>:<member UUID>]
 ~~~
 
-Use valid UUIDs and a strict end-anchored parser. Keep the original description prefix byte-for-byte; stripping the exact recognized suffix must restore it. Test empty descriptions, Unicode, quotes, and descriptions resembling markers. Recognize ownership only when the suffix and the persisted group/member/account binding agree.
+Use valid UUIDs and a strict end-anchored parser. Keep the original description prefix byte-for-byte; stripping the exact recognized suffix must restore it. Native filterDesc is an ACString byte string, not a Unicode JS string: handle UTF-8 explicitly at the UI/native boundary and preserve the original bytes; do not silently normalize or replace undecodable descriptions. Step 1 verifies UTF-8 description bytes containing quotes and non-ASCII characters. Test empty descriptions and descriptions resembling markers in Step 2. Recognize ownership only when the suffix and the persisted group/member/account binding agree.
 
 Rules:
 
@@ -314,7 +348,7 @@ For bounded storage, retain the unfinished operation and only a compact last-com
 
 ## 6. Privileged API and native editing design
 
-Keep the existing namespace, adding explicit methods and schema types. Put shared-rule native helpers in api/senderToFilter/shared.js, loaded into the Experiment's own scope using an extension-local URI. Verify the loading approach on the supported native versions; do not introduce a second Experiment namespace.
+Keep the existing namespace, adding explicit methods and schema types. Put shared-rule native helpers in api/senderToFilter/shared.js, loaded into the Experiment's own scope using an extension-local URI. Step 1 verifies loadSubScriptWithOptions with an explicit target and allowUnsafeURL: true for a fixed bundled resource on 155.0.1, matching Thunderbird's own Experiment loader; bare loadSubScript rejects the packaged jar:file URI. Never accept a caller-supplied script URL. Revalidate the loading approach on the other supported native versions; do not introduce a second production Experiment namespace.
 
 Recommended contracts:
 
@@ -343,7 +377,7 @@ Implement one shared readback helper and use it in inspection, preview, conflict
 1. Resolve the standard rules-file location from the native server/list. For an account whose live list has not been loaded, the standard server's localPath plus the native filename msgFilterRules.dat is the discovery path; reject nonstandard backends before using it. Never take a path from a page or message.
 2. Read the original file's bytes without creating it. Record existence and a content hash. Treat absence or an empty new-account file as an empty prospective list for preview.
 3. Create a private unique scratch directory/file, with restricted permissions. Copy the observed bytes there and call OpenFilterList(scratchFile, rootFolder, null). All automatic parser migrations and any scratch defaultFile remain confined to that directory.
-4. Reject parse errors, unexpected normalization, and format-migration requirements for an existing account file. If native parsing rewrites the scratch copy, ask the user to open that account's ordinary Message Filters once so Thunderbird can handle its migration, then retry. Do not silently migrate the original during a preview.
+4. Reject parse errors, unexpected normalization, and format-migration requirements for an existing account file. Step 1 found that a truncated attribute can be silently accepted without a parser error or immediate rewrite. After parsing, serialize the parsed list back to its explicitly assigned private scratch file and compare bytes with the inspected input. Reject any difference for an existing nonempty file. This conservative check can reject manually formatted but otherwise valid files; the user can open and save that account's ordinary Message Filters to let Thunderbird normalize it, then retry. Do not silently migrate or normalize the original during a preview.
 5. Export the parsed snapshot, discard the parsed list, and remove scratch artifacts in finally. Never assign this scratch list as an account's live/editable list.
 6. Before initializing/using the live list, ensure an existing original still matches the inspected bytes. A missing new-account rules file may be initialized only after the operation intent is durable.
 7. Compare live and saved definitions before writing. Unexplained differences are an edit conflict, not permission to flush unsaved native state.
@@ -484,21 +518,29 @@ No new permission is assumed necessary for the proposed core paths. Existing mes
 
 ## 9. Implementation sequence and verification gates
 
-All commands below run from /Users/thedaego/development/sender-to-filter. Implementation occurs only after a separate request to proceed. Keep logical changes reviewable; do not commit or push without the user's authorization.
+All commands below run from /Users/thedaego/development/sender-to-filter. Implementation was authorized on September 16, 2026. Keep logical changes reviewable; do not commit or push without the user's authorization.
+
+Progress on September 16, 2026: Step 1 is implemented and passes on installed Thunderbird 155.0.1. Step 2 is implemented in lib/shared-model.js with 32 focused model checks; all 65 Node checks pass. ESR 140/153 runtime checks and visible human UI inspection remain pending. Steps 3–7 are pending; the native adapter is next. Runtime files still implement version 1.1.0 only. The model is not loaded by the manifest or included in the production package; neither it nor the native probes enable production shared writes.
 
 Before editing, run:
 
 ~~~sh
 git rev-parse HEAD
 git status --short
-git diff --stat c831217176ac46b2e317d72253196d88b5736a81 -- background.js api manifest.json package.json scripts tests README.md VALIDATION.md CHANGELOG.md
+git diff --stat 45502831acd1e96d2d35343c0e88e28cdfafde68 -- background.js api manifest.json package.json scripts tests README.md VALIDATION.md CHANGELOG.md
 npm run check
 npm test
 ~~~
 
-Expected baseline: HEAD as recorded or understood subsequent commits, no unexpected source differences, 31 passing tests. Planning files may be untracked. Reconcile legitimate drift with the code excerpts; never overwrite unrelated work.
+Expected baseline: HEAD as refreshed above or understood subsequent commits, no unexpected source differences, version 1.1.0 and 33 passing tests. Planning files are tracked. Reconcile legitimate drift with the code excerpts; never overwrite unrelated work.
 
 ### Step 1 — Prove native prerequisites in disposable profiles
+
+Implemented in tests/native/shared.js, the native Test Experiment/background, and scripts/test-thunderbird.py. The `--shared` option runs existing checks, adds offline IMAP/POP and alias/deferral fixtures, then launches the same marked disposable profile in a second process to verify persistence. Eight Python runner tests now cover profile refusal, stale-result rejection, process failure/timeout, launch isolation, and the macOS sandbox guard.
+
+Evidence: test-results/shared-native-check.json and .log record **74 passing native checks** on 155.0.1: 24 existing checks plus 50 shared prerequisites, across two successfully exited processes. The probes cover the bullets below. Native dialogs were driven programmatically in headless mode, not manually inspected in visible mode. Serialization of the 13 supported action types is verified; real incoming-mail execution and the full account/action/trigger compatibility matrix remain later release gates. No normal profile was opened or changed.
+
+The first macOS sandboxed test launch aborted in application registration before the harness ran; the user's normal Thunderbird process remained running. The runner now refuses this environment before creating a profile or starting Thunderbird. Use an approved unsandboxed execution or a normal terminal on macOS. The harness also rejects nonzero process exits/timeouts even if a result file reports success, and removes old result files before restart.
 
 Extend the native fixture/harness with separately identified shared-rule checks before enabling production mutations:
 
@@ -520,7 +562,8 @@ Verify:
 ~~~sh
 npm run check
 npm test
-python3 scripts/test-thunderbird.py --binary /Applications/Thunderbird.app/Contents/MacOS/thunderbird --output dist/shared-native-check.json
+python3 tests/native_runner_test.py
+python3 scripts/test-thunderbird.py --binary /Applications/Thunderbird.app/Contents/MacOS/thunderbird --shared --output test-results/shared-native-check.json
 ~~~
 
 Expected: all existing checks pass, JSON ok is true, and named new native checks pass. Repeat with operator-supplied ESR 140 and ESR 153 binaries before claiming support. Interactive detached-editor checks may require a separate visible disposable-profile run; identify them as pending until actually performed.
@@ -530,6 +573,18 @@ If description markers or native cloning fail, stop this feature's implementatio
 ### Step 2 — Define the portable model and ownership rules
 
 Create shared-model.js and its tests. Implement strict versioned schemas, discriminated actions, identity-marker parsing, deterministic fingerprints, folder slots, size limits, and pure recovery/state transitions. Separate sharing eligibility from sender-add eligibility.
+
+Implemented September 16, 2026: **32 focused checks pass**, alongside all 33 existing Node checks. The module exports SenderToFilterSharedModel without reading storage or calling native APIs. npm run check now includes it. No Thunderbird process was launched for this step.
+
+Concrete contracts for the following steps:
+
+- Stored UUIDs are canonical lowercase UUIDs; recognized marker suffixes accept either case while retaining the original description bytes. Fingerprints use `sha256:` followed by 64 lowercase hex characters over deterministic UTF-8 JSON. Object keys sort; arrays and strings retain exact order/content. Non-JSON objects, getters, sparse arrays, cycles and malformed Unicode are rejected.
+- RuleDefinition holds Unicode user descriptions and native condition text. Native snapshots hold the exact ACString description prefix separately from the parsed marker; strict UTF-8 encode/decode helpers bridge these forms without replacing undecodable bytes. The supported execution mask is 497. Typed priority actions allow values 2–6 and junk actions allow 0 or 100.
+- A prepared ReplicaSnapshot contains accountId, accountIdentityHash, position, marker (null or groupId/memberId), and rule. Its native rule contains name, description bytes, enabled, filterType, temporary, unparseable, unparsedBuffer, complete observed terms, and ordered typed native actions. Before snapshots retain unsupported native data for exact comparison. After snapshots must match the desired header, condition text/shape and supported action payload/order. Folder URI resolution, native parsing/scope validation, complete observation, saved-file verification and account eligibility remain adapter obligations; the pure model cannot prove them.
+- Prepared write targets always retain an after snapshot. A create has a null before snapshot; adopt begins with an unmarked rule; replace retains ownership; detach retains the complete rule and position while clearing only its marker. Explicit missing/unavailable-member resolution and its cleanup proof belong to the coordinator; an ordinary retry never turns a missing managed copy into a creation.
+- Every durable intent lists all retained/new members in membership order. A new reviewed change, including membership or mapping repair, increments the group revision; retry does not. Already-current targets are reconciled as no-ops. beginChange rejects stale revisions, unfinished intents, silently removed/rebound members and forged applied history. A new explicit repair can record creation or adoption for a missing member; recovery follows that recorded mode.
+- assertIntentSize counts UTF-8 JSON for the desired definition, all member mappings, and the complete ordered intent. beginChange also reserves bounded checkpoint growth within 4 MiB before intent publication. After a verified save, checkpoint records its fingerprint/revision while preserving earlier successes; finishOperation requires all targets verified applied, removes detached members, and retains only a compact completion summary. Each function returns independent state for the later single-writer storage operation.
+- classifyRecovery recognizes exact after state without saving again, retries exact before state, requires re-preparation after unrelated list/position changes, and reports missing identities, ambiguous markers, native drift or unreadable persistence. It returns decisions only. Fresh inspection, explicit conflict resolutions, durable storage, the mutation queue and retry scheduling remain Step 4 responsibilities.
 
 Verify:
 
@@ -542,6 +597,8 @@ Expected: deterministic serialization and every model/identity/recovery case pas
 
 ### Step 3 — Implement the native adapter
 
+**Implemented.** See the completion record above and current evidence in VALIDATION.md. The following text retains the implementation requirements and verification recipe.
+
 Add shared.js, expose the schema methods, and adapt fake native lists to model multiple accounts, typed actions, complete snapshots, marker duplication, list replacement, saved-state readback, and failures.
 
 The existing addConditions method must refuse a recognized managed/marked target with a structured managed-target result, even if an old menu tries the single-account route. Update the API schema and background response handling together.
@@ -551,12 +608,14 @@ Verify:
 ~~~sh
 node --test tests/experiment.test.cjs tests/shared-experiment.test.cjs
 npm run check
-python3 scripts/test-thunderbird.py --binary /Applications/Thunderbird.app/Contents/MacOS/thunderbird --output dist/shared-native-check.json
+python3 scripts/test-thunderbird.py --binary /Applications/Thunderbird.app/Contents/MacOS/thunderbird --shared --output test-results/shared-native-check.json
 ~~~
 
 Expected: v1 unshared behavior still passes; managed bypasses are rejected; native shared checks pass. Each API write has fresh account/ownership/before-state validation.
 
 ### Step 4 — Implement synchronization and recovery
+
+**Implemented.** See the completion record above and current evidence in VALIDATION.md. The following text retains the implementation requirements and verification recipe.
 
 Create shared-coordinator.js. Add the global mutation queue, one-key storage updates, desired revisions, durable intents, per-target checkpoints, startup reconciliation, blocked-group behavior, and coalesced read-only scans. Route ordinary add operations through the same queue to serialize writes to common account files.
 
@@ -572,6 +631,8 @@ npm test
 Expected: all crash boundaries, storage failures, native conflicts, retries, and cross-group concurrency cases pass; successful targets never duplicate their rule or repeat a no-op save.
 
 ### Step 5 — Build the manager and detached editing flow
+
+**Implemented.** See the completion record above and current evidence in VALIDATION.md. The following text retains the implementation requirements and verification recipe.
 
 Add options_ui and the accessible management page. Route typed runtime requests through the coordinator. Validate sender.id and allowed extension-page URLs; do not register external-message handlers or accept arbitrary operations from unrelated contexts.
 
@@ -590,6 +651,8 @@ Expected: preview/cancel causes zero mutations; invalid mapping/collision blocks
 
 ### Step 6 — Integrate shared sender actions
 
+**Implemented.** See the completion record above and current evidence in VALIDATION.md. The following text retains the implementation requirements and verification recipe.
+
 Update selection/menu snapshot shapes so mixed-account selections can target shared groups without opening the ordinary single-account route. Preserve generation checking, serialized menu mutations, hide-before-click behavior, domain persistence, and parsing limits.
 
 Add group revision and complete account-result information to snapshots/results. Managed native copies cannot be modified independently through old IDs or alternate API calls.
@@ -605,7 +668,9 @@ Expected: v1 tests still cover the no-shared-group case; new tests prove cross-a
 
 ### Step 7 — Package, document, and validate
 
-Bump manifest.json and package.json together to 1.1.0 when the feature is complete. Extend the build and native-runner runtime allowlists to include lib/ and options/. Expand npm run check to cover all production JavaScript, including the new helper and options scripts.
+**Implemented.** See the completion record above and current evidence in VALIDATION.md. The following text retains the implementation requirements and verification recipe.
+
+Bump manifest.json and package.json together to 1.2.0 when the feature is complete; 1.1.0 is already used by native tag creation. Extend the build and native-runner runtime allowlists to include lib/ and options/. Expand npm run check to cover all production JavaScript, including the new helper and options scripts.
 
 Add package.test.cjs to read a built XPI using Python's standard zipfile support. It must inspect the actual archive, not infer correctness from source filenames.
 
@@ -617,12 +682,12 @@ Verify in this order:
 npm run check
 npm run build
 npm test
-python3 scripts/test-thunderbird.py --binary /Applications/Thunderbird.app/Contents/MacOS/thunderbird --output dist/shared-native-check.json
+python3 scripts/test-thunderbird.py --binary /Applications/Thunderbird.app/Contents/MacOS/thunderbird --shared --output test-results/shared-native-check.json
 git diff --check
 git status --short
 ~~~
 
-Expected: all commands succeed; package tests validate dist/sender-to-filter-1.1.0.xpi; no test-only Experiment is in the archive; only in-scope source/docs and ignored dist artifacts changed.
+Expected: all commands succeed; package tests validate dist/sender-to-filter-1.2.0.xpi; no test-only Experiment is in the archive; only in-scope source/docs and ignored build/test artifacts changed.
 
 ## 10. Required regression matrix
 
