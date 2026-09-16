@@ -44,6 +44,8 @@
       same(retried.live, retried.disk) && retried.live.terms.filter(t => t.value === "retry@example.com").length === 1);
     check("localization substitutions work in Thunderbird", browser.i18n.getMessage("notifyResult", ["2", "1", "Fixture"]) ===
       "Added 2, already present 1, to ‘Fixture’.");
+    await api.enableFilterTags();
+    checks.push(...await browser.nativeTest.checkFilterTags());
     await browser.nativeTest.finish({ ok: true, version, checks });
   } catch (error) {
     await browser.nativeTest.finish({ ok: false, version, checks, error: String(error), stack: error.stack });

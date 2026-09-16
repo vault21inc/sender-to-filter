@@ -2,6 +2,7 @@
   {
     "namespace": "nativeTest",
     "functions": [
+      { "name": "checkFilterTags", "type": "function", "async": true, "parameters": [] },
       { "name": "setup", "type": "function", "async": true, "parameters": [] },
       { "name": "inspect", "type": "function", "async": true, "parameters": [] },
       { "name": "setFailingDestination", "type": "function", "async": true, "parameters": [{ "name": "fail", "type": "boolean" }] },

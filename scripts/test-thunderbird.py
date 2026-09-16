@@ -93,6 +93,9 @@ def main():
                 ]
         output.write_text(json.dumps(result, indent=2) + "\n")
         output.with_suffix(".log").write_text(log_text)
+        screenshot = profile / "native-filter-tags.png"
+        if screenshot.exists():
+            output.with_suffix(".png").write_bytes(screenshot.read_bytes())
         print(json.dumps(result, indent=2))
         if not result["ok"]:
             print(log_text[-12000:])
