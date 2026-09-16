@@ -1,5 +1,20 @@
 # Validation
 
+September 16, 2026 — version 1.1.0, creating tags in the native filter editor.
+
+**Current checks passed**
+
+- Production JavaScript syntax checks and 33 Node.js checks. The new checks cover startup isolation, one-time listener registration, already-open/loading editor attachment, cleanup on disable, and reinitialization. These lifecycle checks use mocks.
+- 24 checks inside a real **Thunderbird 155.0.1** process in a fresh, offline, disposable profile, including the 13 existing sender/filter checks below.
+- Real filter and tag dialogs verified blank-name handling, duplicate-name rejection, cancellation, tag name/color creation, automatic key selection, preservation of other rows and other open editors, unsaved-filter preservation, added/changed/removed action rows, native filter acceptance, saved-rule reload, and keeping a created tag after cancelling the filter edit.
+- The native layout check confirms the button is visible beside the dropdown. The captured chrome screenshot was inspected: both tag actions have a visible **New Tag…** button, with the action selectors and row controls intact.
+
+Current evidence is in `dist/native-check-1.1.0.json`, `.log`, and `.png`. The tag-action reload uses a scratch copy of the disposable profile's rules file. The native runner packages the production files with test-only additions; `npm run build` excludes those additions from the installable XPI.
+
+The new feature has runtime evidence on 155.0.1 only. ESR 140/153 and interactive disable/re-enable with an open tag dialog still need runtime checks. The earlier source inspections below apply to the original sender feature. No normal user profile was opened or changed.
+
+**Original sender feature**
+
 September 12, 2026 — initial implementation of the revision 2 plan.
 
 **Automated checks passed**
