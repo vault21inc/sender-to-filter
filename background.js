@@ -11,6 +11,7 @@
     temporary: "reasonTemporary", unparseable: "reasonUnparseable",
     "match-all": "reasonMatchAll", grouped: "reasonGrouped", "and-logic": "reasonAndLogic",
     "no-terms": "reasonNoTerms", "duplicate-name": "reasonDuplicateName",
+    "managed-target": "reasonManagedTarget",
   };
   const text = (key, substitutions) => browser.i18n.getMessage(key, substitutions);
   // A literal ampersand must not turn a sender/filter name into an access key.
@@ -21,6 +22,63 @@
   let domainMode = false;
   let childIds = [];
   let menuQueue = Promise.resolve();
+  const shared = globalThis.createSharedCoordinator?.({ model: globalThis.SenderToFilterSharedModel,
+    storage: browser.storage.local, native: browser.senderToFilter });
+  const sharedReady = shared ? shared.start() : Promise.resolve();
+  sharedReady.catch(() => console.error("Shared filters could not initialize."));
+  if (shared) {
+    browser.senderToFilter.onSharedRunRequested.addListener(async runId => {
+      try {
+        await sharedReady;
+        await shared.exclusive(async () => {
+          const M = globalThis.SenderToFilterSharedModel;
+          const saved = await browser.storage.local.get(M.STORAGE_KEY);
+          const loaded = M.loadState(saved[M.STORAGE_KEY]);
+          if (loaded.status === "blocked") throw new Error("Shared state unavailable");
+          await browser.senderToFilter.runSharedFilters(runId, Object.values(loaded.state.groups));
+        });
+      } catch { await browser.senderToFilter.cancelSharedRun(runId).catch(() => {}); }
+    });
+    const managerURL = browser.runtime.getURL("options/shared-filters.html");
+    browser.spaces.create("shared_filters", { url: managerURL }, {
+      title: text("sharedSpaceTitle"),
+      defaultIcons: "icons/shared-filters.svg",
+      themeIcons: [16, 32].map(size => ({ size,
+        dark: "icons/shared-filters.svg", light: "icons/shared-filters-light.svg" })),
+    }).catch(() => console.error("Sender to Filter could not add the shared filters sidebar button."));
+    browser.runtime.onMessage.addListener((message, sender) => {
+      if (message?.channel !== "stf-shared") return undefined;
+      return sharedReady.then(() => shared.dispatch(message, sender, managerURL, browser.runtime.id));
+    });
+    let scanning = false, eventTimer = null;
+    const attempts = new Map();
+    const scan = async (dependencyEvent = false) => {
+      if (scanning) return;
+      scanning = true;
+      try {
+        await sharedReady;
+        const view = await shared.scan();
+        if (dependencyEvent) for (const group of Object.values(view.state?.groups || {})) {
+          const prior = attempts.get(group.id) || { at: 0, count: 0 };
+          if (!group.operation || prior.count >= 3 || Date.now() - prior.at < 30000 ||
+              group.operation.targets.some(t => ["conflict", "uncertain"].includes(t.status))) continue;
+          if (group.operation.targets.some(t => ["failed", "unavailable"].includes(t.status))) {
+            attempts.set(group.id, { at: Date.now(), count: prior.count + 1 });
+            await shared.retry(group.id, group.revision);
+          }
+        }
+      } catch { /* The manager shows preserved storage/native failures. */ }
+      finally { scanning = false; }
+    };
+    setInterval(() => { void scan(); }, 60000);
+    const changed = () => {
+      clearTimeout(eventTimer);
+      eventTimer = setTimeout(() => { void scan(true); }, 1000);
+    };
+    for (const events of [browser.accounts, browser.folders, browser.messages.tags]) {
+      for (const name of ["onCreated", "onUpdated", "onDeleted", "onMoved", "onRenamed"]) events?.[name]?.addListener(changed);
+    }
+  }
 
   function createMenu(properties) {
     return new Promise((resolve, reject) => {
@@ -41,6 +99,8 @@
 
   browser.senderToFilter.enableFilterTags().catch(error =>
     console.error("Sender to Filter could not enable filter tag creation:", error));
+  browser.senderToFilter.enableSharedFilterIndicators().catch(() =>
+    console.error("Sender to Filter could not enable shared filter indicators."));
 
   const active = gen => gen === currentGen && menuOpen;
 
@@ -53,7 +113,7 @@
 
   function freezeSnapshot(snapshot) {
     Object.freeze(snapshot.folder);
-    for (const key of ["senders", "conditions", "filters"]) {
+    for (const key of ["senders", "conditions", "filters", "groups"]) {
       snapshot[key].forEach(Object.freeze);
       Object.freeze(snapshot[key]);
     }
@@ -68,6 +128,8 @@
       ? text("headerDomainSingle", conditions[0].value)
       : text("headerDomainMulti", String(conditions.length));
     const rows = [{ id: `stf-header-${gen}`, title: prefix + domain, enabled: false }];
+    if (snapshot.groups.length) rows.push({ id: `stf-account-${gen}`, title: text("menuThisAccount"), enabled: !snapshot.mixed });
+    if (snapshot.mixed) rows.push({ id: `stf-mixed-${gen}`, title: text("rowMixedAccounts"), enabled: false });
     for (const filter of filters) {
       let title = filter.name;
       if (filter.present === "some") title += text("suffixSome");
@@ -76,14 +138,23 @@
       rows.push({
         id: `stf-filter-${gen}-${filter.index}`, title,
         type: "checkbox", checked: filter.present === "all", enabled: filter.eligible,
+        ...(snapshot.groups.length ? { parentId: `stf-account-${gen}` } : {}),
       });
+    }
+    if (snapshot.groups.length) {
+      rows.push({ id: `stf-shared-parent-${gen}`, title: text("menuSharedFilters") });
+      snapshot.groups.forEach((group, index) => rows.push({ id: `stf-shared-${gen}-${index}`,
+        parentId: `stf-shared-parent-${gen}`, type: "checkbox", checked: group.present === "all", enabled: group.eligible,
+        title: text("menuSharedGroup", [group.name, String(group.count)]) + (group.pending ? text("suffixPending") : "") +
+          (group.reason ? text("suffixSharedEditor") : "") }));
     }
     rows.push(
       { id: `stf-separator-mode-${gen}`, type: "separator" },
       { id: `stf-domain-${gen}`, title: text("menuDomainToggle"), type: "checkbox", checked: snapshot.domainMode },
       { id: `stf-separator-actions-${gen}`, type: "separator" },
-      { id: `stf-new-${gen}`, title: text(senders.length > 1 ? "menuNewFilterFirstOnly" : "menuNewFilter", senders[0].email) },
-      { id: `stf-manage-${gen}`, title: text("menuManage") },
+      { id: `stf-new-${gen}`, title: text(senders.length > 1 ? "menuNewFilterFirstOnly" : "menuNewFilter", senders[0].email), enabled: !snapshot.mixed },
+      { id: `stf-manage-${gen}`, title: text("menuManage"), enabled: !snapshot.mixed },
+      ...(shared ? [{ id: `stf-sharedmanage-${gen}`, title: text("menuManageShared") }] : []),
     );
     return rows;
   }
@@ -94,14 +165,14 @@
       await browser.menus.update(ROOT, { enabled: false, title: menuText(text("menuRoot")) });
       // Menu mutations are serialized. A newer build cannot create its rows
       // halfway through removal of the previous set.
-      for (const id of childIds) await browser.menus.remove(id);
+      for (const id of [...childIds].reverse()) await browser.menus.remove(id);
       childIds = [];
       if (!active(gen)) return;
       const rows = snapshot ? rowsFor(snapshot) : problem
         ? [{ id: `stf-problem-${gen}`, title: text(problem), enabled: false }] : [];
       for (const row of rows) {
         if (!active(gen)) return;
-        await createMenu({ ...row, ...(row.title ? { title: menuText(row.title) } : {}), parentId: ROOT });
+        await createMenu({ parentId: ROOT, ...row, ...(row.title ? { title: menuText(row.title) } : {}) });
         childIds.push(row.id);
       }
       if (!active(gen)) return;
@@ -132,12 +203,12 @@
         page = await browser.messages.continueList(remainingId);
       }
       if (!messages.length) return { problem: "rowNoSender" };
-      if (messages.some(message => !message.folder)) return { problem: "rowExternalMessage" };
+      if (messages.some(message => !message.folder || typeof message.folder.accountId !== "string" ||
+          typeof message.folder.path !== "string")) return { problem: "rowExternalMessage" };
       const folder = messages[0].folder;
-      if (messages.some(message => message.folder.accountId !== folder.accountId)) {
-        return { problem: "rowMixedAccounts" };
-      }
-      return { messages, folder: { accountId: folder.accountId, path: folder.path } };
+      const mixed = messages.some(message => message.folder.accountId !== folder.accountId);
+      if (mixed && !Object.keys(shared?.view().state?.groups || {}).length) return { problem: "rowMixedAccounts" };
+      return { messages, mixed, folder: { accountId: folder.accountId, path: folder.path } };
     } finally {
       if (remainingId) await browser.messages.abortList(remainingId).catch(() => {});
     }
@@ -162,6 +233,7 @@
     if (!menuOpen) return;
     try {
       await ready;
+      await sharedReady.catch(() => {});
       await render(gen);
       if (!active(gen)) return;
       const selected = await selection(info, gen);
@@ -190,11 +262,13 @@
       const conditions = [...new Set(senders.map(sender => mode ? `@${sender.email.split("@")[1]}` : sender.email))]
         .map(value => ({ op: mode ? "contains" : "is", value }));
       if (!active(gen)) return;
-      const filters = await browser.senderToFilter.listFilters(selected.folder, conditions);
+      const filters = selected.mixed ? [] : (await browser.senderToFilter.listFilters(selected.folder, conditions))
+        .filter(filter => filter.reason !== "managed-target");
+      const groups = shared && !shared.view().blocked ? await shared.menu(conditions) : [];
       if (!active(gen)) return;
       const snapshot = freezeSnapshot({
         gen, windowId: tab.windowId, tabId: tab.id, folder: selected.folder,
-        senders, conditions, filters, domainMode: mode,
+        senders, conditions, filters, groups, mixed: selected.mixed, domainMode: mode,
       });
       await render(gen, snapshot);
     } catch (error) {
@@ -215,12 +289,25 @@
   }
 
   async function onClicked(info, tab) {
-    const match = /^stf-(filter|domain|new|manage)-(\d+)(?:-(\d+))?$/.exec(String(info.menuItemId));
+    const match = /^stf-(filter|domain|new|manage|shared|sharedmanage)-(\d+)(?:-(\d+))?$/.exec(String(info.menuItemId));
     const snapshot = current;
     if (!match || !snapshot || Number(match[2]) !== snapshot.gen || snapshot.gen !== currentGen ||
         tab?.windowId !== snapshot.windowId || tab?.id !== snapshot.tabId) return;
     try {
       switch (match[1]) {
+        case "sharedmanage":
+          await browser.runtime.openOptionsPage();
+          break;
+        case "shared": {
+          const group = snapshot.groups[Number(match[3])];
+          if (!group?.eligible) return;
+          const result = await shared.append(group.id, group.revision, snapshot.conditions);
+          if (result.ok === false) { await notify(text("notifySharedBlocked")); break; }
+          const count = (result.observations[group.id] || []).filter(r => ["current", "applied"].includes(r.status)).length;
+          await notify(text("notifySharedResult", [String(result.added.length), String(result.existing.length), group.name,
+            String(count), String(group.count)]));
+          break;
+        }
         case "domain": {
           const previous = domainMode;
           domainMode = typeof info.checked === "boolean" ? info.checked : !snapshot.domainMode;
@@ -233,16 +320,19 @@
           break;
         }
         case "new":
+          if (snapshot.mixed) return;
           await browser.senderToFilter.openNewFilter(snapshot.windowId, snapshot.folder, snapshot.senders[0].email);
           break;
         case "manage":
+          if (snapshot.mixed) return;
           await browser.senderToFilter.openFilterManager(snapshot.windowId, snapshot.folder);
           break;
         case "filter": {
           const filter = snapshot.filters.find(item => item.index === Number(match[3]));
           if (!filter?.eligible) return;
-          const result = await browser.senderToFilter.addConditions(snapshot.folder,
+          const add = () => browser.senderToFilter.addConditions(snapshot.folder,
             { index: filter.index, name: filter.name }, snapshot.conditions);
+          const result = await (shared ? shared.exclusive(add) : add());
           if (result.status === "ok") {
             await notify(text("notifyResult", [String(result.added.length), String(result.existing.length), filter.name]));
           } else if (result.status === "ineligible") {

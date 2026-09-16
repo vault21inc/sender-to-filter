@@ -7,56 +7,874 @@
         "id": "Folder",
         "type": "object",
         "properties": {
-          "accountId": { "type": "string" },
-          "path": { "type": "string" }
+          "accountId": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
         }
       },
       {
         "id": "Condition",
         "type": "object",
         "properties": {
-          "op": { "type": "string", "enum": ["is", "contains"] },
-          "value": { "type": "string" }
+          "op": {
+            "type": "string",
+            "enum": [
+              "is",
+              "contains"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
         }
       },
       {
         "id": "Target",
         "type": "object",
         "properties": {
-          "index": { "type": "integer", "minimum": 0 },
-          "name": { "type": "string" }
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
+          }
         }
       },
       {
         "id": "Reason",
         "type": "string",
-        "enum": ["temporary", "unparseable", "match-all", "grouped", "and-logic", "no-terms", "duplicate-name"]
+        "enum": [
+          "temporary",
+          "unparseable",
+          "match-all",
+          "grouped",
+          "and-logic",
+          "no-terms",
+          "duplicate-name",
+          "managed-target"
+        ]
       },
       {
         "id": "FilterInfo",
         "type": "object",
         "properties": {
-          "index": { "type": "integer" },
-          "name": { "type": "string" },
-          "enabled": { "type": "boolean" },
-          "eligible": { "type": "boolean" },
-          "reason": { "$ref": "Reason", "optional": true },
-          "present": { "type": "string", "enum": ["all", "some", "none"] }
+          "index": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "reason": {
+            "$ref": "Reason",
+            "optional": true
+          },
+          "present": {
+            "type": "string",
+            "enum": [
+              "all",
+              "some",
+              "none"
+            ]
+          }
         }
       },
       {
         "id": "AddResult",
         "type": "object",
         "properties": {
-          "status": { "type": "string", "enum": ["ok", "not-found", "ineligible", "error"] },
-          "added": { "type": "array", "items": { "type": "string" } },
-          "existing": { "type": "array", "items": { "type": "string" } },
-          "reason": { "$ref": "Reason", "optional": true },
-          "message": { "type": "string", "optional": true }
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "not-found",
+              "ineligible",
+              "error"
+            ]
+          },
+          "added": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "existing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "$ref": "Reason",
+            "optional": true
+          },
+          "message": {
+            "type": "string",
+            "optional": true
+          }
+        }
+      },
+      {
+        "id": "SharedAction",
+        "choices": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "MoveToFolder"
+                ]
+              },
+              "slotId": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "CopyToFolder"
+                ]
+              },
+              "slotId": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "AddTag"
+                ]
+              },
+              "tagKey": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "ChangePriority"
+                ]
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 6
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "JunkScore"
+                ]
+              },
+              "junkScore": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "MarkRead"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "MarkUnread"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "MarkFlagged"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Delete"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "StopExecution"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "KillThread"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "KillSubthread"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "WatchThread"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "RuleDefinition",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "filterType": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "logic": {
+            "type": "string",
+            "enum": [
+              "single",
+              "or",
+              "and",
+              "all"
+            ]
+          },
+          "conditionText": {
+            "type": "string"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "SharedAction"
+            }
+          }
+        }
+      },
+      {
+        "id": "FolderMappings",
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "Folder"
+        }
+      },
+      {
+        "id": "Ownership",
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "type": "string"
+          },
+          "memberId": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "id": "NativeTerm",
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "attrib": {
+            "type": "integer"
+          },
+          "op": {
+            "type": "integer"
+          },
+          "arbitraryHeader": {
+            "type": "string"
+          },
+          "booleanAnd": {
+            "type": "boolean"
+          },
+          "matchAll": {
+            "type": "boolean"
+          },
+          "beginsGrouping": {
+            "choices": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "endsGrouping": {
+            "choices": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "customId": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          },
+          "hdrProperty": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          }
+        }
+      },
+      {
+        "id": "NativeAction",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "integer"
+          },
+          "targetFolderUri": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          },
+          "strValue": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          },
+          "customId": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          },
+          "priority": {
+            "type": "integer",
+            "optional": "omit-key-if-missing"
+          },
+          "junkScore": {
+            "type": "integer",
+            "optional": "omit-key-if-missing"
+          },
+          "label": {
+            "type": "integer",
+            "optional": "omit-key-if-missing"
+          }
+        }
+      },
+      {
+        "id": "NativeRule",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "filterType": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "temporary": {
+            "type": "boolean"
+          },
+          "unparseable": {
+            "type": "boolean"
+          },
+          "unparsedBuffer": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "array",
+            "items": {
+              "$ref": "NativeTerm"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "NativeAction"
+            }
+          }
+        }
+      },
+      {
+        "id": "ReplicaSnapshot",
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "accountIdentityHash": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "marker": {
+            "choices": [
+              {
+                "$ref": "Ownership"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rule": {
+            "$ref": "NativeRule"
+          }
+        }
+      },
+      {
+        "id": "SharedMember",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "accountIdentityHash": {
+            "type": "string"
+          },
+          "folderMappings": {
+            "$ref": "FolderMappings"
+          },
+          "positionHint": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastAppliedRevision": {
+            "choices": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastAppliedFingerprint": {
+            "choices": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "lastInspectedAt": {
+            "choices": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "TargetOperation",
+        "type": "object",
+        "properties": {
+          "memberId": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "create",
+              "adopt",
+              "replace",
+              "detach"
+            ]
+          },
+          "before": {
+            "choices": [
+              {
+                "$ref": "ReplicaSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "$ref": "ReplicaSnapshot"
+          },
+          "expectedListFingerprint": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          },
+          "cleanup": {
+            "type": "array",
+            "items": {
+              "$ref": "ReplicaSnapshot"
+            },
+            "optional": "omit-key-if-missing"
+          }
+        }
+      },
+      {
+        "id": "SharedOperation",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "create",
+              "update",
+              "repair",
+              "detach"
+            ]
+          },
+          "desiredRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "beforeDefinition": {
+            "choices": [
+              {
+                "$ref": "RuleDefinition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "TargetOperation"
+            }
+          },
+          "startedAt": {
+            "type": "string"
+          }
+        }
+      },
+      {
+        "id": "OperationSummary",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completedAt": {
+            "type": "string"
+          },
+          "appliedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "detachedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "memberId": {
+                  "type": "string"
+                },
+                "errorCode": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "SharedGroup",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "definition": {
+            "$ref": "RuleDefinition"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "SharedMember"
+            }
+          },
+          "operation": {
+            "choices": [
+              {
+                "$ref": "SharedOperation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastCompleted": {
+            "choices": [
+              {
+                "$ref": "OperationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "RuleSelector",
+        "choices": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "owned"
+                ]
+              },
+              "groupId": {
+                "type": "string"
+              },
+              "memberId": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "explicit"
+                ]
+              },
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "name": {
+                "type": "string"
+              },
+              "fingerprint": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "MemberChange",
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "memberId": {
+            "type": "string",
+            "optional": "omit-key-if-missing"
+          },
+          "folderMappings": {
+            "$ref": "FolderMappings"
+          },
+          "selector": {
+            "choices": [
+              {
+                "$ref": "RuleSelector"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "optional": "omit-key-if-missing"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 0,
+            "optional": "omit-key-if-missing"
+          },
+          "detach": {
+            "type": "boolean",
+            "optional": "omit-key-if-missing"
+          },
+          "create": {
+            "type": "boolean",
+            "optional": "omit-key-if-missing"
+          }
+        }
+      },
+      {
+        "id": "SharedChange",
+        "type": "object",
+        "properties": {
+          "previous": {
+            "choices": [
+              {
+                "$ref": "SharedGroup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "definition": {
+            "$ref": "RuleDefinition"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "MemberChange"
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "create",
+              "update",
+              "repair",
+              "detach"
+            ]
+          },
+          "reviewed": {
+            "type": "boolean"
+          }
         }
       }
     ],
+    "events": [
+      {
+        "name": "onSharedRunRequested", "type": "function",
+        "description": "A user explicitly requested a shared run in a native filter window.",
+        "parameters": [{ "name": "runId", "type": "string" }]
+      }
+    ],
     "functions": [
+      {
+        "name": "runSharedFilters", "type": "function", "async": true,
+        "description": "Execute a captured native Run Now request against validated shared groups.",
+        "parameters": [{ "name": "runId", "type": "string" },
+          { "name": "groups", "type": "array", "items": { "$ref": "SharedGroup" } }]
+      },
+      {
+        "name": "cancelSharedRun", "type": "function", "async": true,
+        "parameters": [{ "name": "runId", "type": "string" }]
+      },
+      {
+        "name": "enableSharedFilterIndicators",
+        "description": "Label shared copies in native filter lists without changing rules or Run Now behavior.",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
       {
         "name": "enableFilterTags",
         "description": "Add New Tag controls to native filter editors for the lifetime of this add-on.",
@@ -69,30 +887,67 @@
         "type": "function",
         "async": true,
         "parameters": [
-          { "name": "folder", "$ref": "Folder" },
-          { "name": "conditions", "type": "array", "items": { "$ref": "Condition" } }
+          {
+            "name": "folder",
+            "$ref": "Folder"
+          },
+          {
+            "name": "conditions",
+            "type": "array",
+            "items": {
+              "$ref": "Condition"
+            }
+          }
         ],
-        "returns": { "type": "array", "items": { "$ref": "FilterInfo" } }
+        "returns": {
+          "type": "array",
+          "items": {
+            "$ref": "FilterInfo"
+          }
+        }
       },
       {
         "name": "addConditions",
         "type": "function",
         "async": true,
         "parameters": [
-          { "name": "folder", "$ref": "Folder" },
-          { "name": "target", "$ref": "Target" },
-          { "name": "conditions", "type": "array", "items": { "$ref": "Condition" } }
+          {
+            "name": "folder",
+            "$ref": "Folder"
+          },
+          {
+            "name": "target",
+            "$ref": "Target"
+          },
+          {
+            "name": "conditions",
+            "type": "array",
+            "items": {
+              "$ref": "Condition"
+            }
+          }
         ],
-        "returns": { "$ref": "AddResult" }
+        "returns": {
+          "$ref": "AddResult"
+        }
       },
       {
         "name": "openNewFilter",
         "type": "function",
         "async": true,
         "parameters": [
-          { "name": "windowId", "type": "integer" },
-          { "name": "folder", "$ref": "Folder" },
-          { "name": "emailAddress", "type": "string" }
+          {
+            "name": "windowId",
+            "type": "integer"
+          },
+          {
+            "name": "folder",
+            "$ref": "Folder"
+          },
+          {
+            "name": "emailAddress",
+            "type": "string"
+          }
         ]
       },
       {
@@ -100,8 +955,120 @@
         "type": "function",
         "async": true,
         "parameters": [
-          { "name": "windowId", "type": "integer" },
-          { "name": "folder", "$ref": "Folder" }
+          {
+            "name": "windowId",
+            "type": "integer"
+          },
+          {
+            "name": "folder",
+            "$ref": "Folder"
+          }
+        ]
+      },
+      {
+        "name": "inspectAccounts",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
+        "name": "readRule",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "accountId",
+            "type": "string"
+          },
+          {
+            "name": "selector",
+            "$ref": "RuleSelector"
+          }
+        ]
+      },
+      {
+        "name": "inspectReplicas",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "group",
+            "$ref": "SharedGroup"
+          }
+        ]
+      },
+      {
+        "name": "prepareSharedChange",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "change",
+            "$ref": "SharedChange"
+          }
+        ]
+      },
+      {
+        "name": "applyReplica",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "group",
+            "$ref": "SharedGroup"
+          },
+          {
+            "name": "memberId",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "name": "appendRule",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "group",
+            "$ref": "SharedGroup"
+          },
+          {
+            "name": "conditions",
+            "type": "array",
+            "items": {
+              "$ref": "Condition"
+            }
+          }
+        ]
+      },
+      {
+        "name": "editRuleDraft",
+        "type": "function",
+        "async": true,
+        "parameters": [
+          {
+            "name": "accountId",
+            "type": "string"
+          },
+          {
+            "name": "definition",
+            "$ref": "RuleDefinition"
+          },
+          {
+            "name": "mappings",
+            "$ref": "FolderMappings"
+          },
+          {
+            "name": "windowId",
+            "choices": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         ]
       }
     ]

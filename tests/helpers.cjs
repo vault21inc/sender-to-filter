@@ -66,7 +66,7 @@ function experiment(filters = [filter()], modules = {}) {
     } },
     Ci: constants,
     Cc: { "@mozilla.org/messenger/msgwindow;1": { createInstance: () => ({}) } },
-    ExtensionCommon: { ExtensionAPI: class {} },
+    ExtensionCommon: { ExtensionAPI: class {}, EventManager: class { api() { return {}; } } },
     Services: { obs: { notifyObservers() {} } },
   };
   vm.createContext(sandbox);
@@ -83,7 +83,8 @@ function background(overrides = {}) {
   const calls = { adds: [], lists: [], notifications: [], aborts: [], new: [], manage: [], errors: [] };
   const storage = { ...overrides.storage };
   const browser = {
-    runtime: { getURL: name => `moz-extension://fixture/${name}` },
+    runtime: { getURL: name => `moz-extension://fixture/${name}`, id: "self",
+      onMessage: { addListener: fn => { listeners.message = fn; } }, async openOptionsPage() { calls.options = (calls.options || 0) + 1; } },
     i18n: {
       getMessage(key, substitutions = []) {
         const values = Array.isArray(substitutions) ? substitutions : [substitutions];
@@ -92,6 +93,7 @@ function background(overrides = {}) {
       },
     },
     storage: { local: { get: async () => ({ ...storage }), set: async values => Object.assign(storage, values) } },
+    spaces: { async create() {} },
     menus: {
       create(props, callback) {
         Promise.resolve().then(() => overrides.create?.(props)).then(() => {
@@ -123,7 +125,11 @@ function background(overrides = {}) {
       async abortList(id) { calls.aborts.push(id); },
     },
     senderToFilter: {
+      onSharedRunRequested: { addListener: fn => { listeners.sharedRun = fn; } },
+      async runSharedFilters(...args) { await overrides.runSharedFilters?.(...args); },
+      async cancelSharedRun(...args) { await overrides.cancelSharedRun?.(...args); },
       async enableFilterTags() { await overrides.enableFilterTags?.(); },
+      async enableSharedFilterIndicators() { await overrides.enableSharedFilterIndicators?.(); },
       async listFilters(folder, conditions) {
         calls.lists.push(plain({ folder, conditions }));
         return overrides.listFilters ? overrides.listFilters(folder, conditions) : [
@@ -140,12 +146,16 @@ function background(overrides = {}) {
     },
     notifications: { async create(notification) { calls.notifications.push(plain(notification)); } },
   };
-  const sandbox = { browser, console: { error: (...args) => calls.errors.push(args) } };
+  const sandbox = { browser, console: { error: (...args) => calls.errors.push(args) },
+    ...(overrides.model ? { SenderToFilterSharedModel: overrides.model } : {}),
+    ...(overrides.shared ? { createSharedCoordinator: () => overrides.shared } : {}),
+    setInterval: fn => { listeners.scan = fn; }, setTimeout, clearTimeout };
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(path.join(root, "background.js"), "utf8"), sandbox);
   const defaultTab = { id: 7, windowId: 42 };
   return {
     browser, items, calls, storage,
+    requestSharedRun: id => listeners.sharedRun(id),
     shown: (messages, tab = defaultTab, id = null) => listeners.shown({ contexts: ["message_list"], selectedMessages: { messages, id } }, tab),
     click: (menuItemId, extras = {}, tab = defaultTab) => listeners.clicked({ menuItemId, ...extras }, tab),
     hide: () => listeners.hidden(),

@@ -41,6 +41,7 @@
   }
 
   function ineligibleReason(filter, filters, terms) {
+    if (/ \[stf-shared:/iu.test(filter.filterDesc || "")) return "managed-target";
     if (filter.temporary) return "temporary";
     if (filter.unparseable) return "unparseable";
     if (!terms.length) return "no-terms";
@@ -214,6 +215,7 @@
 
   exports.senderToFilter = class extends ExtensionCommon.ExtensionAPI {
     getAPI(context) {
+      this.sharedRunListeners ||= new Set();
       const resolveFolder = folder => {
         if (!folder || typeof folder.accountId !== "string" || typeof folder.path !== "string") {
           throw new Error("The selected message has no usable account folder.");
@@ -233,14 +235,70 @@
         }
         return win;
       };
+      const shared = () => {
+        if (!this.sharedAdapter) {
+          Cu.importGlobalProperties(["TextEncoder", "TextDecoder", "crypto"]);
+          const scope = { TextEncoder, TextDecoder, crypto, Ci, Cc, ChromeUtils, Services };
+          for (const path of ["lib/shared-model.js", "api/senderToFilter/shared-native.js", "api/senderToFilter/shared.js", "api/senderToFilter/shared-run.js", "api/senderToFilter/filter-list.js"]) {
+            Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve(path),
+              { target: scope, charset: "UTF-8", allowUnsafeURL: true });
+          }
+          const model = scope.SenderToFilterSharedModel;
+          this.sharedModel = model;
+          this.FilterListIndicators = scope.FilterListIndicators;
+          this.sharedHost = scope.createSharedNativeHost(context, model);
+          this.sharedAdapter = scope.createSharedAdapter(model, this.sharedHost, normalizeConditions);
+          this.sharedRunController = scope.createSharedRunController(model, this.sharedHost);
+        }
+        return this.sharedAdapter;
+      };
+      const sharedCall = async (method, ...args) => {
+        try { return await shared()[method](...args); }
+        catch (error) {
+          const { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
+          // Surface only our bounded codes/field paths, never native exception
+          // messages containing profile paths, endpoints or filter contents.
+          throw new ExtensionError(this.sharedModel && error instanceof this.sharedModel.ModelError ? error.message : "native-io-failed");
+        }
+      };
 
       return {
         senderToFilter: {
+          onSharedRunRequested: new ExtensionCommon.EventManager({ context, name: "senderToFilter.onSharedRunRequested",
+            register: fire => {
+              const send = id => fire.async(id); this.sharedRunListeners.add(send);
+              return () => this.sharedRunListeners.delete(send);
+            },
+          }).api(),
+          runSharedFilters: async (runId, groups) => this.filterListIndicators?.execute(runId, groups),
+          cancelSharedRun: async runId => this.filterListIndicators?.cancel(runId, "shared-run-state-unavailable"),
+          inspectAccounts: async () => sharedCall("inspectAccounts"),
+          readRule: async (accountId, selector) => sharedCall("readRule", accountId, selector),
+          inspectReplicas: async group => sharedCall("inspectReplicas", group),
+          prepareSharedChange: async change => sharedCall("prepareSharedChange", change),
+          applyReplica: async (group, memberId) => sharedCall("applyReplica", group, memberId),
+          appendRule: async (group, conditions) => sharedCall("appendRule", group, conditions),
+          editRuleDraft: async (accountId, definition, mappings, windowId) => sharedCall("editRuleDraft", accountId, definition, mappings, windowId),
           enableFilterTags: async () => {
             if (this.filterTags) return;
             const controls = new FilterTagControls(context.extension);
             controls.start();
             this.filterTags = controls;
+          },
+          enableSharedFilterIndicators: async () => {
+            if (this.filterListIndicators) return;
+            shared();
+            const indicators = new this.FilterListIndicators(context.extension, this.sharedModel, {
+              uuid: this.sharedHost.uuid, runner: this.sharedRunController,
+              runLocal: (selection, control) => this.sharedHost.runFilters(selection.folder, selection.filters,
+                selection.list, selection.window, control),
+              request: id => {
+                const send = this.sharedRunListeners.values().next().value;
+                if (!send) throw new Error("Shared run listener unavailable");
+                return send(id);
+              },
+            });
+            indicators.start(); this.filterListIndicators = indicators;
           },
 
           async listFilters(folder, conditions) {
@@ -329,6 +387,8 @@
     }
 
     onShutdown(isAppShutdown) {
+      this.filterListIndicators?.stop();
+      this.filterListIndicators = null;
       this.filterTags?.stop();
       this.filterTags = null;
       if (!isAppShutdown) Services.obs.notifyObservers(null, "startupcache-invalidate");

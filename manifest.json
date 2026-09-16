@@ -2,26 +2,51 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "default_locale": "en",
   "browser_specific_settings": {
     "gecko": {
       "id": "sender-to-filter@vault21inc.com",
       "strict_min_version": "140.0",
-      "strict_max_version": "155.*"
+      "strict_max_version": "156.*"
     }
   },
-  "background": { "scripts": ["background.js"] },
-  "permissions": ["menus", "messagesRead", "accountsRead", "notifications", "storage"],
-  "icons": { "32": "icons/icon.svg", "64": "icons/icon.svg" },
+  "background": {
+    "scripts": [
+      "lib/shared-model.js",
+      "lib/shared-coordinator.js",
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "menus",
+    "messagesRead",
+    "accountsRead",
+    "notifications",
+    "storage"
+  ],
+  "icons": {
+    "32": "icons/icon.svg",
+    "64": "icons/icon.svg"
+  },
   "experiment_apis": {
     "senderToFilter": {
       "schema": "api/senderToFilter/schema.json",
       "parent": {
-        "scopes": ["addon_parent"],
-        "paths": [["senderToFilter"]],
+        "scopes": [
+          "addon_parent"
+        ],
+        "paths": [
+          [
+            "senderToFilter"
+          ]
+        ],
         "script": "api/senderToFilter/implementation.js"
       }
     }
+  },
+  "options_ui": {
+    "page": "options/shared-filters.html",
+    "open_in_tab": true
   }
 }

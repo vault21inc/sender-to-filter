@@ -9,7 +9,7 @@ target="dist/sender-to-filter-$version.xpi"
 # Build beside the final file, then rename only after zip succeeds.
 temporary=$(mktemp -d dist/.build.XXXXXX)
 trap 'rm -rf "$temporary"' EXIT
-inputs=(manifest.json background.js api _locales LICENSE)
+inputs=(manifest.json background.js api lib options _locales LICENSE)
 if [[ -d icons ]]; then inputs+=(icons); fi
 zip -q -r -X "$temporary/addon.xpi" "${inputs[@]}" -x '*.DS_Store'
 mv "$temporary/addon.xpi" "$target"

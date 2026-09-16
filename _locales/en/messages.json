@@ -1,38 +1,665 @@
 {
-  "extensionName": { "message": "Sender to Filter" },
-  "extensionDescription": { "message": "Add selected senders to existing filters and create tags in the filter editor." },
-  "filterNewTag": { "message": "New Tag…" },
-  "filterNewTagTooltip": { "message": "Create a tag and select it for this filter action" },
-  "filterTagCreateError": { "message": "Could not create the tag. Please try again." },
-  "filterTagSelectError": { "message": "The tag was created, but could not be selected. Reopen the filter editor and select it from the tag list." },
-  "menuRoot": { "message": "Add Sender to Filter" },
-  "headerSingle": { "message": "Sender: $1" },
-  "headerMulti": { "message": "$1 senders selected" },
-  "headerDomainSingle": { "message": " (domain text: $1)" },
-  "headerDomainMulti": { "message": " ($1 domain text values)" },
-  "rowTooMany": { "message": "More than 100 messages selected" },
-  "rowTooManySenders": { "message": "More than 100 sender addresses selected" },
-  "rowMixedAccounts": { "message": "Select messages from one account" },
-  "rowNoSender": { "message": "No usable sender address" },
-  "rowExternalMessage": { "message": "Select a message stored in an account folder" },
-  "rowLoadError": { "message": "Could not load filters; try opening the menu again" },
-  "suffixSome": { "message": " (some already present)" },
-  "suffixDisabled": { "message": " (disabled)" },
-  "suffixUnsupported": { "message": " — unsupported: $1" },
-  "reasonTemporary": { "message": "temporary filter" },
-  "reasonUnparseable": { "message": "unreadable filter" },
-  "reasonMatchAll": { "message": "matches all messages" },
-  "reasonGrouped": { "message": "grouped conditions" },
-  "reasonAndLogic": { "message": "AND conditions" },
-  "reasonNoTerms": { "message": "no conditions" },
-  "reasonDuplicateName": { "message": "duplicate filter name" },
-  "menuDomainToggle": { "message": "Match domain text in From" },
-  "menuNewFilter": { "message": "New filter from $1…" },
-  "menuNewFilterFirstOnly": { "message": "New filter from $1… (first sender only)" },
-  "menuManage": { "message": "Manage filters…" },
-  "notifyResult": { "message": "Added $1, already present $2, to ‘$3’." },
-  "notifyIneligible": { "message": "‘$1’ cannot be updated: $2. Use Manage filters to edit it." },
-  "notifyNotFound": { "message": "‘$1’ is no longer available. Open the menu again." },
-  "notifyError": { "message": "Sender to Filter could not complete the action: $1" },
-  "errorUnknown": { "message": "Unknown error." }
+  "extensionName": {
+    "message": "Sender to Filter"
+  },
+  "extensionDescription": {
+    "message": "Add senders to filters, share complete filters across accounts, and create tags in Thunderbird\u2019s filter editor."
+  },
+  "filterNewTag": {
+    "message": "New Tag\u2026"
+  },
+  "filterNewTagTooltip": {
+    "message": "Create a tag and select it for this filter action"
+  },
+  "filterTagCreateError": {
+    "message": "Could not create the tag. Please try again."
+  },
+  "filterTagSelectError": {
+    "message": "The tag was created, but could not be selected. Reopen the filter editor and select it from the tag list."
+  },
+  "menuRoot": {
+    "message": "Add Sender to Filter"
+  },
+  "headerSingle": {
+    "message": "Sender: $1"
+  },
+  "headerMulti": {
+    "message": "$1 senders selected"
+  },
+  "headerDomainSingle": {
+    "message": " (domain text: $1)"
+  },
+  "headerDomainMulti": {
+    "message": " ($1 domain text values)"
+  },
+  "rowTooMany": {
+    "message": "More than 100 messages selected"
+  },
+  "rowTooManySenders": {
+    "message": "More than 100 sender addresses selected"
+  },
+  "rowMixedAccounts": {
+    "message": "Select messages from one account"
+  },
+  "rowNoSender": {
+    "message": "No usable sender address"
+  },
+  "rowExternalMessage": {
+    "message": "Select a message stored in an account folder"
+  },
+  "rowLoadError": {
+    "message": "Could not load filters; try opening the menu again"
+  },
+  "suffixSome": {
+    "message": " (some already present)"
+  },
+  "suffixDisabled": {
+    "message": " (disabled)"
+  },
+  "suffixUnsupported": {
+    "message": " \u2014 unsupported: $1"
+  },
+  "reasonTemporary": {
+    "message": "temporary filter"
+  },
+  "reasonUnparseable": {
+    "message": "unreadable filter"
+  },
+  "reasonMatchAll": {
+    "message": "matches all messages"
+  },
+  "reasonGrouped": {
+    "message": "grouped conditions"
+  },
+  "reasonAndLogic": {
+    "message": "AND conditions"
+  },
+  "reasonNoTerms": {
+    "message": "no conditions"
+  },
+  "reasonDuplicateName": {
+    "message": "duplicate filter name"
+  },
+  "menuDomainToggle": {
+    "message": "Match domain text in From"
+  },
+  "menuNewFilter": {
+    "message": "New filter from $1\u2026"
+  },
+  "menuNewFilterFirstOnly": {
+    "message": "New filter from $1\u2026 (first sender only)"
+  },
+  "menuManage": {
+    "message": "Manage filters\u2026"
+  },
+  "notifyResult": {
+    "message": "Added $1, already present $2, to \u2018$3\u2019."
+  },
+  "notifyIneligible": {
+    "message": "\u2018$1\u2019 cannot be updated: $2. Use Manage filters to edit it."
+  },
+  "notifyNotFound": {
+    "message": "\u2018$1\u2019 is no longer available. Open the menu again."
+  },
+  "notifyError": {
+    "message": "Sender to Filter could not complete the action: $1"
+  },
+  "errorUnknown": {
+    "message": "Unknown error."
+  },
+  "reasonManagedTarget": {
+    "message": "managed by Shared filters"
+  },
+  "menuThisAccount": {
+    "message": "This account"
+  },
+  "menuSharedFilters": {
+    "message": "Shared filters"
+  },
+  "menuSharedGroup": {
+    "message": "$1 ($2 accounts)"
+  },
+  "suffixPending": {
+    "message": " \u2014 pending"
+  },
+  "suffixSharedEditor": {
+    "message": " \u2014 open shared editor"
+  },
+  "menuManageShared": {
+    "message": "Manage shared filters\u2026"
+  },
+  "notifySharedBlocked": {
+    "message": "No filters changed. Open Manage shared filters to review the affected accounts."
+  },
+  "notifySharedResult": {
+    "message": "Added $1, already present $2, to \u2018$3\u2019; $4 of $5 accounts are up to date. Open Manage shared filters for details."
+  },
+  "sharedProduct": {
+    "message": "Sender to Filter"
+  },
+  "sharedTitle": {
+    "message": "Shared filters"
+  },
+  "sharedSpaceTitle": {
+    "message": "Manage shared filters"
+  },
+  "sharedIntro": {
+    "message": "Keep complete message filters consistent across the accounts you choose."
+  },
+  "sharedRefresh": {
+    "message": "Refresh status"
+  },
+  "sharedNew": {
+    "message": "New shared filter"
+  },
+  "sharedCancel": {
+    "message": "Cancel"
+  },
+  "sharedName": {
+    "message": "Filter name"
+  },
+  "sharedDescription": {
+    "message": "Description"
+  },
+  "sharedEnabled": {
+    "message": "Enabled"
+  },
+  "sharedDisabled": {
+    "message": "Disabled"
+  },
+  "sharedReference": {
+    "message": "Reference account for editing"
+  },
+  "sharedEditNative": {
+    "message": "Edit conditions and actions\u2026"
+  },
+  "sharedDraftHelp": {
+    "message": "The Thunderbird editor changes a draft. Review the account preview and save here to update linked filters."
+  },
+  "sharedAccounts": {
+    "message": "Accounts and destinations"
+  },
+  "sharedPlacementHelp": {
+    "message": "Existing copies keep their positions. Earlier account filters can affect which messages reach this rule; other filters are never rearranged."
+  },
+  "sharedSameFolders": {
+    "message": "Use the first selected account\u2019s destinations for all selected accounts"
+  },
+  "sharedPreview": {
+    "message": "Review changes"
+  },
+  "sharedPreviewTitle": {
+    "message": "Review shared filter changes"
+  },
+  "sharedPreviewHelp": {
+    "message": "Check every account, folder and position. Saving updates future filtering; it does not run filters on existing messages."
+  },
+  "sharedBack": {
+    "message": "Back to editing"
+  },
+  "sharedSave": {
+    "message": "Save shared filter"
+  },
+  "sharedFooter": {
+    "message": "Sharing works within this Thunderbird profile. Disabling the add-on leaves each account\u2019s last saved filter in place."
+  },
+  "sharedUnavailableAccount": {
+    "message": "Unavailable account"
+  },
+  "sharedChooseFolder": {
+    "message": "Choose a destination\u2026"
+  },
+  "sharedMove": {
+    "message": "Move to folder"
+  },
+  "sharedCopy": {
+    "message": "Copy to folder"
+  },
+  "sharedTag": {
+    "message": "Tag message"
+  },
+  "sharedPriority": {
+    "message": "Set priority"
+  },
+  "sharedJunk": {
+    "message": "Set junk score"
+  },
+  "sharedMarkRead": {
+    "message": "Mark read"
+  },
+  "sharedMarkUnread": {
+    "message": "Mark unread"
+  },
+  "sharedStar": {
+    "message": "Star message"
+  },
+  "sharedDelete": {
+    "message": "Delete message"
+  },
+  "sharedStop": {
+    "message": "Stop filter execution"
+  },
+  "sharedIgnoreThread": {
+    "message": "Ignore thread"
+  },
+  "sharedIgnoreSubthread": {
+    "message": "Ignore subthread"
+  },
+  "sharedWatchThread": {
+    "message": "Watch thread"
+  },
+  "sharedAllMessages": {
+    "message": "All messages"
+  },
+  "sharedMatchAll": {
+    "message": "Match all conditions"
+  },
+  "sharedMatchAny": {
+    "message": "Match any condition"
+  },
+  "sharedIncoming": {
+    "message": "Incoming mail"
+  },
+  "sharedManual": {
+    "message": "Manual runs"
+  },
+  "sharedAfterJunk": {
+    "message": "After junk classification"
+  },
+  "sharedOutgoing": {
+    "message": "After sending"
+  },
+  "sharedArchive": {
+    "message": "When archiving"
+  },
+  "sharedPeriodic": {
+    "message": "Periodic runs"
+  },
+  "sharedEmptyTitle": {
+    "message": "Choose a filter to share"
+  },
+  "sharedEmptyHelp": {
+    "message": "Start with an existing filter, select the accounts that should use it, and choose a destination for each account."
+  },
+  "sharedMemberCount": {
+    "message": "Linked to $1 accounts"
+  },
+  "sharedAccount": {
+    "message": "Account"
+  },
+  "sharedStatus": {
+    "message": "Status"
+  },
+  "sharedActions": {
+    "message": "Actions"
+  },
+  "sharedUseAccount": {
+    "message": "Use this account\u2019s version"
+  },
+  "sharedReviewMappings": {
+    "message": "Choose and review every destination before saving this draft."
+  },
+  "sharedUnlinkAccount": {
+    "message": "Stop sharing this account"
+  },
+  "sharedForget": {
+    "message": "Remove missing account or copy\u2026"
+  },
+  "sharedForgetConfirm": {
+    "message": "Remove this unavailable or missing copy from sharing? Its native file will not be changed. A returning account may retain an unlinked copy. Account: $1"
+  },
+  "sharedEdit": {
+    "message": "Edit shared rule\u2026"
+  },
+  "sharedResolve": {
+    "message": "Review and resolve\u2026"
+  },
+  "sharedRetry": {
+    "message": "Retry pending accounts"
+  },
+  "sharedStatusRefreshed": {
+    "message": "Account status checked."
+  },
+  "sharedUnlinkGroup": {
+    "message": "Stop sharing the group\u2026"
+  },
+  "sharedAlreadyLinked": {
+    "message": "already marked as shared"
+  },
+  "sharedSourceAccount": {
+    "message": "Source account"
+  },
+  "sharedSourceFilter": {
+    "message": "Existing filter"
+  },
+  "sharedLoadSource": {
+    "message": "Use this filter"
+  },
+  "sharedChooseSource": {
+    "message": "Choose an available, unlinked source filter."
+  },
+  "sharedKeepLinked": {
+    "message": "Update the linked copy"
+  },
+  "sharedRecreate": {
+    "message": "Create a replacement copy"
+  },
+  "sharedCreateCopy": {
+    "message": "Create a copy"
+  },
+  "sharedLinkExisting": {
+    "message": "Link and replace: $1"
+  },
+  "sharedAccountAction": {
+    "message": "Action for this account"
+  },
+  "sharedPosition": {
+    "message": "Insert new filter at position"
+  },
+  "sharedNativeBadge": {
+    "message": "Shared"
+  },
+  "sharedNativeReviewBadge": {
+    "message": "Shared link issue"
+  },
+  "sharedNativeTooltip": {
+    "message": "Linked shared-filter copy. Check Manage shared filters for synchronization status and edit the shared rule there. Use the shared-account checkbox below to choose where it runs."
+  },
+  "sharedNativeReviewTooltip": {
+    "message": "This filter has an unrecognized shared link. Review it in Manage shared filters before running it across accounts."
+  },
+  "sharedNativeRunAcross": {
+    "message": "Run shared filters across all linked accounts (Inboxes)"
+  },
+  "sharedNativeAutomatic": { "message": "Run automatically" },
+  "sharedNativeAutomaticHelp": { "message": "Checked filters run automatically at their configured times. Highlight rows to choose filters for Run selected filters." },
+  "sharedNativeRunSelected": { "message": "Run selected filters ($1)" },
+  "sharedNativeRunSelectedHelp": { "message": "Run only the highlighted rows, including filters whose automatic checkbox is unchecked." },
+  "sharedNativeRunAll": { "message": "Run all enabled filters ($1)" },
+  "sharedNativeRunAllHelp": { "message": "Run all filters checked under Run automatically in this account, including filters hidden by search. The shared-account option below applies to both run buttons." },
+  "sharedNativeRunAcrossHelp": { "message": "Applies to both run buttons. Checked: shared filters run on the Inbox in each linked account; other filters use the chosen folder. Unchecked: all filters use only the chosen folder." },
+  "sharedNativeRunFolderLabel": { "message": "Folder for this account:" },
+  "sharedNativeRunFolder": { "message": "$1 on $2" },
+  "sharedNativeRunChooseFolder": { "message": "choose a folder above" },
+  "sharedNativeRunSharedTarget": { "message": "$1 → Inbox in each linked account" },
+  "sharedNativeRunLocalTarget": { "message": "$1 → $2" },
+  "sharedNativeRunPreview": { "message": "Will run: $1." },
+  "sharedNativeRunAllPreview": { "message": "All enabled in this account (including filters hidden by search): $1." },
+  "sharedNativeRunSelectRows": { "message": "Highlight one or more filter rows to choose what to run. The checkboxes control automatic filtering." },
+  "sharedNativeRunNoneEnabled": { "message": "No filters are checked under Run automatically in this account." },
+  "sharedNativeRunLocalProgress": { "message": "Running filters on the chosen folder…" },
+  "sharedNativeRunStop": { "message": "Stop filtering" },
+  "sharedNativeRunChecking": { "message": "Checking all linked copies and Inboxes before running filters…" },
+  "sharedNativeRunProgress": { "message": "Running filters: $1 (folder $2 of $3)…" },
+  "sharedNativeRunStopping": { "message": "Stopping filtering…" },
+  "sharedNativeRunComplete": { "message": "Finished running filters on $1 folder(s)." },
+  "sharedNativeRunNotStarted": { "message": "No filters were run. $1" },
+  "sharedNativeRunPartial": { "message": "Stopped after $1 of $2 folders. The current folder may be partly processed. $3" },
+  "sharedError_shared_run_unknown_link": { "message": "A selected copy is not linked to a known shared group. Review it in Manage shared filters." },
+  "sharedError_shared_run_no_selection": { "message": "Select a linked shared filter to run." },
+  "sharedError_shared_run_folder_unavailable": { "message": "A linked Inbox or the selected folder is unavailable. Check the accounts and try again." },
+  "sharedError_shared_run_cancelled": { "message": "The run was stopped. No further accounts will be processed." },
+  "sharedError_shared_run_filtering_failed": { "message": "Thunderbird reported a filtering failure. Check the filter log before running it again." },
+  "sharedError_shared_run_state_unavailable": { "message": "Shared filter state is unavailable. Open Manage shared filters to check its status." },
+  "sharedOrderTitle": {
+    "message": "Filter order preview"
+  },
+  "sharedOrderNewPosition": {
+    "message": "New copy at position $1 of $2. Change the position above to place it before or after other filters."
+  },
+  "sharedOrderInvalidPosition": {
+    "message": "Enter a position from 1 to $1 to see where the new copy will go."
+  },
+  "sharedOrderKeptPosition": {
+    "message": "Keeps its current position ($1)."
+  },
+  "sharedOrderUnchanged": {
+    "message": "Existing filters keep their positions."
+  },
+  "sharedOrderNewCopy": {
+    "message": "New copy"
+  },
+  "sharedOrderLinkedCopy": {
+    "message": "Linked copy"
+  },
+  "sharedOrderIndependentCopy": {
+    "message": "Becomes independent"
+  },
+  "sharedOrderReplaces": {
+    "message": "Replaces: $1"
+  },
+  "sharedUnnamedFilter": {
+    "message": "Unnamed filter"
+  },
+  "sharedChooseAllFolders": {
+    "message": "Choose a destination for every folder action in every selected account."
+  },
+  "sharedUnlinkHelp": {
+    "message": "Remove the sharing marker and keep this account\u2019s current rule. The rule continues to run independently."
+  },
+  "sharedPreviewPosition": {
+    "message": "Position in this account: $1"
+  },
+  "sharedBefore": {
+    "message": "Current rule being replaced: $1"
+  },
+  "sharedBeforeHelp": {
+    "message": "The saved conditions below will be replaced along with this rule\u2019s actions and settings."
+  },
+  "sharedReadyToSave": {
+    "message": "Preview ready. Review the accounts before saving."
+  },
+  "sharedChooseReference": {
+    "message": "Select an available reference account."
+  },
+  "sharedDraftChanged": {
+    "message": "Draft updated. Review changes before saving."
+  },
+  "sharedDestinationsCopied": {
+    "message": "Destinations copied. Each selected folder\u2019s account is shown in the preview."
+  },
+  "sharedSaved": {
+    "message": "Operation completed. Check each account\u2019s status below; some accounts may need retry or review."
+  },
+  "sharedErrorGeneric": {
+    "message": "The operation could not complete. Refresh the account status and try again."
+  },
+  "sharedStatus_current": {
+    "message": "Up to date"
+  },
+  "sharedStatus_updating": {
+    "message": "Updating"
+  },
+  "sharedStatus_pending": {
+    "message": "Updating"
+  },
+  "sharedStatus_pending_retry": {
+    "message": "Pending retry"
+  },
+  "sharedStatus_failed": {
+    "message": "Pending retry"
+  },
+  "sharedStatus_needs_review": {
+    "message": "Needs review"
+  },
+  "sharedStatus_conflict": {
+    "message": "Needs review"
+  },
+  "sharedStatus_unavailable": {
+    "message": "Account unavailable"
+  },
+  "sharedStatus_uncertain": {
+    "message": "Persistence uncertain"
+  },
+  "sharedMode_create": {
+    "message": "Create a copy"
+  },
+  "sharedMode_adopt": {
+    "message": "Link and replace an existing filter"
+  },
+  "sharedMode_replace": {
+    "message": "Update the linked copy"
+  },
+  "sharedMode_detach": {
+    "message": "Stop sharing; keep the current rule"
+  },
+  "sharedError_account_unavailable": {
+    "message": "This account is unavailable. Its sharing record is preserved."
+  },
+  "sharedError_unsupported_account": {
+    "message": "Only independent IMAP and POP accounts can be members."
+  },
+  "sharedError_deferred_source": {
+    "message": "This POP account delivers into another account."
+  },
+  "sharedError_deferred_destination": {
+    "message": "This account receives deferred POP mail."
+  },
+  "sharedError_shared_rules_file": {
+    "message": "Two accounts refer to the same rules file or incoming server."
+  },
+  "sharedError_editor_open": {
+    "message": "Close the ordinary Message Filters and Filter Rules windows, then retry."
+  },
+  "sharedError_live_disk_conflict": {
+    "message": "Thunderbird has unsaved or conflicting filter changes. Resolve them in Message Filters before retrying."
+  },
+  "sharedError_native_drift": {
+    "message": "This account\u2019s filter was edited outside the shared editor. Review which version to keep."
+  },
+  "sharedError_missing_replica": {
+    "message": "The linked filter or its marker is missing. Explicitly link a filter, create a replacement, or remove this membership."
+  },
+  "sharedError_duplicate_marker": {
+    "message": "More than one filter has this ownership marker. Resolve the duplicate before continuing."
+  },
+  "sharedError_malformed_marker": {
+    "message": "A filter has an incomplete sharing marker. Review it before continuing."
+  },
+  "sharedError_already_owned": {
+    "message": "That filter already belongs to a shared group."
+  },
+  "sharedError_name_collision": {
+    "message": "A different filter has the same name. Link it explicitly or change the shared name."
+  },
+  "sharedError_stale_selection": {
+    "message": "The selected filter changed. Refresh and select it again."
+  },
+  "sharedError_stale_revision": {
+    "message": "The shared filter changed. Reopen it and try again."
+  },
+  "sharedError_stale_preview": {
+    "message": "The account or shared filter changed after preview. Review a fresh preview."
+  },
+  "sharedError_preview_expired": {
+    "message": "This preview expired. Review the changes again."
+  },
+  "sharedError_unfinished_operation": {
+    "message": "Resolve or retry the unfinished operation before making another edit."
+  },
+  "sharedError_folder_unavailable": {
+    "message": "A destination folder is unavailable or cannot receive messages. Select an existing folder."
+  },
+  "sharedError_tag_unavailable": {
+    "message": "A tag used by this rule is unavailable. Edit the rule and choose an existing tag."
+  },
+  "sharedError_rules_normalization_required": {
+    "message": "Thunderbird must normalize this account\u2019s rules file. Open and save its ordinary Message Filters, then retry."
+  },
+  "sharedError_term_unavailable": {
+    "message": "A condition is unavailable for this account and execution setting."
+  },
+  "sharedError_custom_header_unavailable": {
+    "message": "A referenced custom message header is not configured in Thunderbird."
+  },
+  "sharedError_unsupported_term": {
+    "message": "This rule uses an unsupported custom or database-property condition."
+  },
+  "sharedError_unsupported_action": {
+    "message": "This rule contains an action that cannot be shared."
+  },
+  "sharedError_condition_round_trip": {
+    "message": "Thunderbird could not copy this rule without changing its conditions."
+  },
+  "sharedError_account_identity_changed": {
+    "message": "The account identity changed. Review its membership before continuing."
+  },
+  "sharedError_save_failed": {
+    "message": "The filter was not saved. Earlier successful accounts remain updated. Retry when the account is writable."
+  },
+  "sharedError_persistence_uncertain": {
+    "message": "The saved result could not be verified. Inspect this account before another write."
+  },
+  "sharedError_dependency_changed": {
+    "message": "A folder, tag or condition changed after preview. Review a fresh preview."
+  },
+  "sharedError_sender_logic_unsupported": {
+    "message": "Use the shared editor for AND or match-all rules."
+  },
+  "sharedError_unknown_schema_version": {
+    "message": "Stored shared-filter data uses an unsupported version. Restore compatible add-on data before making changes."
+  },
+  "sharedError_invalid_fields": {
+    "message": "Stored or submitted filter data is incomplete. It has not been reset."
+  },
+  "sharedError_missing_state": {
+    "message": "Shared-filter data is missing. Native copies are not automatically adopted."
+  },
+  "sharedError_intent_too_large": {
+    "message": "This operation is too large to save safely. Reduce its size or split the accounts into smaller groups."
+  },
+  "sharedError_cleanup_required": {
+    "message": "This account is accessible. Stop sharing it so its marker is cleaned up first."
+  },
+  "sharedError_repair_changes_definition": {
+    "message": "Unlinking and rule edits must be separate operations."
+  },
+  "sharedError_member_removed_without_detach": {
+    "message": "Stop sharing existing members before removing them."
+  },
+  "sharedError_grouped": {
+    "message": "Grouped conditions cannot be shared."
+  },
+  "sharedError_mixed_connectors": {
+    "message": "Mixed AND/OR conditions cannot be shared."
+  },
+  "sharedError_unsupported_rule": {
+    "message": "This rule cannot be shared without changing its behavior."
+  },
+  "sharedError_no_members": {
+    "message": "Select at least one member account."
+  },
+  "sharedError_placement_changed": {
+    "message": "The filter order changed. Review a fresh preview."
+  },
+  "sharedError_invalid_position": {
+    "message": "Choose a valid position for the new filter."
+  },
+  "sharedError_new_member_has_history": {
+    "message": "Refresh the page and select the account again."
+  },
+  "sharedUnsupportedBefore": {
+    "message": "This account has an unsupported native edit. Saving explicitly replaces its current conditions, actions and settings with the shared rule shown above."
+  },
+  "sharedSelectLinked": {
+    "message": "Keep this linked copy: $1 (position $2)"
+  },
+  "sharedSelectUnlink": {
+    "message": "Unlink this copy and its duplicates: $1 (position $2)"
+  },
+  "sharedCleanupHelp": {
+    "message": "These additional linked copies will become independent rules. Their contents and positions stay as shown; only shared ownership is removed."
+  },
+  "sharedCleanupCopy": {
+    "message": "$1 \u2014 position $2"
+  },
+  "sharedError_duplicate_cleanup_changed": {
+    "message": "The duplicate copies changed after review. Refresh and select the intended copy again."
+  },
+  "sharedError_replica_already_exists": {
+    "message": "A linked copy still exists. Select it explicitly instead of creating another copy."
+  },
+  "sharedError_file_identity_unavailable": {
+    "message": "These accounts have indistinguishable rules-file metadata. Their files must be confirmed independent before sharing."
+  }
 }

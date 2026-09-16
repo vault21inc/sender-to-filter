@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shared filters</title>
+  <link rel="stylesheet" href="shared-filters.css">
+</head>
+<body>
+  <main>
+    <header><div><p class="eyebrow" data-i18n="sharedProduct"></p><h1 data-i18n="sharedTitle"></h1>
+      <p data-i18n="sharedIntro"></p></div><div class="toolbar"><button id="refresh" data-i18n="sharedRefresh"></button>
+      <button id="new" class="primary" data-i18n="sharedNew"></button></div></header>
+    <p id="status" role="status" aria-live="polite" tabindex="-1"></p>
+    <section id="groups" aria-label="Shared filters"></section>
+    <section id="editor" hidden aria-labelledby="editorTitle">
+      <div class="section-heading"><h2 id="editorTitle"></h2><button id="cancel" data-i18n="sharedCancel"></button></div>
+      <div id="source" class="panel"></div>
+      <form id="form" hidden>
+        <div class="panel">
+          <label><span data-i18n="sharedName"></span><input id="name" required maxlength="256"></label>
+          <label><span data-i18n="sharedDescription"></span><textarea id="description" rows="2"></textarea></label>
+          <label class="check"><input type="checkbox" id="enabled"><span data-i18n="sharedEnabled"></span></label>
+          <div id="ruleSummary"></div>
+          <div class="toolbar rule-editor-controls"><label><span data-i18n="sharedReference"></span><select id="reference"></select></label>
+            <button type="button" id="nativeEdit" data-i18n="sharedEditNative"></button></div>
+          <p class="hint" data-i18n="sharedDraftHelp"></p>
+        </div>
+        <h3 data-i18n="sharedAccounts"></h3><p class="hint" data-i18n="sharedPlacementHelp"></p>
+        <div id="members"></div>
+        <button type="button" id="sameFolders" data-i18n="sharedSameFolders"></button>
+        <div class="toolbar end"><button type="submit" class="primary" data-i18n="sharedPreview"></button></div>
+      </form>
+    </section>
+    <section id="preview" hidden aria-labelledby="previewTitle">
+      <h2 id="previewTitle" data-i18n="sharedPreviewTitle"></h2><p data-i18n="sharedPreviewHelp"></p>
+      <div id="previewContent"></div>
+      <div class="toolbar end"><button id="back" data-i18n="sharedBack"></button><button id="save" class="primary" data-i18n="sharedSave"></button></div>
+    </section>
+    <footer data-i18n="sharedFooter"></footer>
+  </main>
+  <script src="shared-filters.js"></script>
+</body>
+</html>
