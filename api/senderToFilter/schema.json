@@ -58,6 +58,13 @@
     ],
     "functions": [
       {
+        "name": "enableFilterTags",
+        "description": "Add New Tag controls to native filter editors for the lifetime of this add-on.",
+        "type": "function",
+        "async": true,
+        "parameters": []
+      },
+      {
         "name": "listFilters",
         "type": "function",
         "async": true,

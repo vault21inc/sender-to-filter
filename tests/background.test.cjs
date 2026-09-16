@@ -2,6 +2,20 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { background, message, deferred, tick } = require("./helpers.cjs");
 
+test("tag controls start at add-on load and a failure does not disable sender menus", async () => {
+  let starts = 0;
+  const h = background({ enableFilterTags: async () => {
+    starts++;
+    throw new Error("Unavailable native editor hook");
+  } });
+  await tick();
+  assert.equal(starts, 1);
+  assert.ok(h.calls.errors.some(args => String(args[0]).includes("filter tag creation")));
+  await h.shown([message()]);
+  await h.click(h.row("stf-filter-").id);
+  assert.equal(h.calls.adds.length, 1);
+});
+
 test("invalid selection gives a visible reason; next valid selection re-enables menu", async () => {
   const h = background();
   await h.shown([message("bad address")]);

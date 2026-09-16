@@ -39,6 +39,9 @@
   })();
   ready.catch(error => console.error("Sender to Filter could not start:", error));
 
+  browser.senderToFilter.enableFilterTags().catch(error =>
+    console.error("Sender to Filter could not enable filter tag creation:", error));
+
   const active = gen => gen === currentGen && menuOpen;
 
   function queueMenu(operation) {

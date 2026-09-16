@@ -61,6 +61,157 @@
       term.value.str.toLowerCase() === condition.value);
   }
 
+  const FILTER_EDITOR = "chrome://messenger/content/FilterEditor.xhtml";
+  const TAG_DIALOG = "chrome://messenger/content/newTagDialog.xhtml";
+
+  class FilterTagControls {
+    constructor(extension) {
+      this.extension = extension;
+      this.windows = new Map();
+      this.listenerId = `${extension.id}-filter-tags`;
+      this.support = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs").ExtensionSupport;
+      this.tags = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs").MailServices.tags;
+    }
+
+    text(key) {
+      return this.extension.localeData.localizeMessage(key);
+    }
+
+    start() {
+      if (!this.support.registerWindowListener(this.listenerId, {
+        chromeURLs: [FILTER_EDITOR],
+        onLoadWindow: win => this.attach(win),
+        onUnloadWindow: win => this.detach(win),
+      })) {
+        throw new Error("Could not register the filter tag controls.");
+      }
+    }
+
+    attach(win) {
+      if (this.windows.has(win)) return;
+      const state = { controls: new Map(), observer: null, pending: null };
+      this.windows.set(win, state);
+      state.load = () => {
+        const list = win.document.getElementById("filterActionList");
+        if (!list) return;
+        const update = () => {
+          for (const [target, control] of state.controls) {
+            if (!list.contains(target)) {
+              control.button.removeEventListener("command", control.command);
+              control.button.remove();
+              state.controls.delete(target);
+            }
+          }
+          for (const target of list.querySelectorAll("ruleactiontarget-tag")) {
+            if (state.controls.has(target)) continue;
+            const menu = target.querySelector("menulist");
+            if (!menu) continue;
+            const button = win.document.createXULElement("button");
+            button.classList.add("stf-new-tag-button");
+            button.setAttribute("label", this.text("filterNewTag"));
+            button.setAttribute("tooltiptext", this.text("filterNewTagTooltip"));
+            const command = event => {
+              event.stopPropagation();
+              this.createTag(win, state, target, menu, button);
+            };
+            button.addEventListener("command", command);
+            state.controls.set(target, { button, command, menu });
+            target.appendChild(button);
+          }
+        };
+        state.observer = new win.MutationObserver(update);
+        state.observer.observe(list, { childList: true, subtree: true });
+        update();
+      };
+      if (win.document.readyState === "complete") state.load();
+      else win.addEventListener("load", state.load, { once: true });
+    }
+
+    refreshMenus() {
+      const tags = this.tags.getAllTags();
+      for (const [win, state] of this.windows) {
+        for (const [target, { menu }] of state.controls) {
+          if (!target.isConnected) continue;
+          const selected = menu.value;
+          const popup = menu.menupopup;
+          const fragment = win.document.createDocumentFragment();
+          for (const tag of tags) {
+            const item = win.document.createXULElement("menuitem");
+            item.setAttribute("label", tag.tag);
+            item.setAttribute("value", tag.key);
+            if (tag.color) item.style.color = tag.color;
+            fragment.appendChild(item);
+          }
+          popup.replaceChildren(fragment);
+          menu.value = selected;
+        }
+      }
+    }
+
+    createTag(win, state, target, menu, button) {
+      if (state.pending || !target.isConnected || !this.windows.has(win)) return;
+      const args = {
+        okCallback: (name, color) => {
+          // An add-on disable or removed action must not leave a live callback.
+          if (!this.windows.has(win) || !target.isConnected) return false;
+          let key;
+          try {
+            this.tags.addTag(name, color, "");
+            key = this.tags.getKeyForTag(name);
+          } catch (error) {
+            console.error("Sender to Filter could not create the tag:", error);
+            Services.prompt.alert(win, this.text("extensionName"), this.text("filterTagCreateError"));
+            return false;
+          }
+          try {
+            this.refreshMenus();
+            menu.value = key;
+            win.checkActionsReorder();
+          } catch (error) {
+            console.error("Sender to Filter could not select the new tag:", error);
+            Services.prompt.alert(win, this.text("extensionName"), this.text("filterTagSelectError"));
+          }
+          return true;
+        },
+      };
+      state.pending = args;
+      button.disabled = true;
+      try {
+        win.openDialog(TAG_DIALOG, "", "chrome,modal,titlebar,centerscreen,resizable=no", args);
+      } catch (error) {
+        console.error("Sender to Filter could not open the tag dialog:", error);
+        Services.prompt.alert(win, this.text("extensionName"), this.text("filterTagCreateError"));
+      } finally {
+        state.pending = null;
+        button.disabled = false;
+        if (menu.isConnected) menu.focus();
+      }
+    }
+
+    detach(win) {
+      const state = this.windows.get(win);
+      if (!state) return;
+      this.windows.delete(win);
+      win.removeEventListener("load", state.load);
+      state.observer?.disconnect();
+      for (const { button, command } of state.controls.values()) {
+        button.removeEventListener("command", command);
+        button.remove();
+      }
+      state.controls.clear();
+      if (state.pending) {
+        for (const child of Services.wm.getEnumerator(null)) {
+          if (child.document.documentURI === TAG_DIALOG && child.arguments?.[0] === state.pending) child.close();
+        }
+      }
+    }
+
+    stop() {
+      this.support.unregisterWindowListener(this.listenerId);
+      for (const win of this.windows.keys()) this.detach(win);
+    }
+  }
+
   exports.senderToFilter = class extends ExtensionCommon.ExtensionAPI {
     getAPI(context) {
       const resolveFolder = folder => {
@@ -85,6 +236,13 @@
 
       return {
         senderToFilter: {
+          enableFilterTags: async () => {
+            if (this.filterTags) return;
+            const controls = new FilterTagControls(context.extension);
+            controls.start();
+            this.filterTags = controls;
+          },
+
           async listFilters(folder, conditions) {
             const wanted = normalizeConditions(conditions);
             const filters = enumerate(getList(folder));
@@ -171,6 +329,8 @@
     }
 
     onShutdown(isAppShutdown) {
+      this.filterTags?.stop();
+      this.filterTags = null;
       if (!isAppShutdown) Services.obs.notifyObservers(null, "startupcache-invalidate");
     }
   };

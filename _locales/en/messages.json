@@ -1,6 +1,10 @@
 {
   "extensionName": { "message": "Sender to Filter" },
-  "extensionDescription": { "message": "Add selected senders to an existing Thunderbird message filter." },
+  "extensionDescription": { "message": "Add selected senders to existing filters and create tags in the filter editor." },
+  "filterNewTag": { "message": "New Tag…" },
+  "filterNewTagTooltip": { "message": "Create a tag and select it for this filter action" },
+  "filterTagCreateError": { "message": "Could not create the tag. Please try again." },
+  "filterTagSelectError": { "message": "The tag was created, but could not be selected. Reopen the filter editor and select it from the tag list." },
   "menuRoot": { "message": "Add Sender to Filter" },
   "headerSingle": { "message": "Sender: $1" },
   "headerMulti": { "message": "$1 senders selected" },

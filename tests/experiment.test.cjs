@@ -134,3 +134,56 @@ test("dialog methods use the explicitly invoking window and fail for a closed wi
   assert.equal(h.dialogs[0][1], h.nativeFolder);
   await assert.rejects(h.api.openFilterManager(99, folder), /window is no longer available/);
 });
+
+test("filter tag controls initialize once and release open/loading windows on disable", async () => {
+  let hook, registrations = 0, removals = 0, observed = 0, disconnected = 0;
+  const events = new Map();
+  const list = { querySelectorAll: () => [] };
+  const win = {
+    document: { readyState: "complete", getElementById: () => list },
+    MutationObserver: class {
+      observe(target) { assert.equal(target, list); observed++; }
+      disconnect() { disconnected++; }
+    },
+    removeEventListener() {},
+  };
+  const loading = {
+    document: { readyState: "loading" },
+    addEventListener: (event, callback) => events.set(event, callback),
+    removeEventListener: (event, callback) => {
+      assert.equal(events.get(event), callback);
+      events.delete(event);
+    },
+  };
+  const support = {
+    registerWindowListener(id, callbacks) {
+      registrations++;
+      hook = callbacks;
+      // ExtensionSupport also calls listeners for editors that are already open.
+      hook.onLoadWindow(win);
+      hook.onLoadWindow(loading);
+      return true;
+    },
+    unregisterWindowListener() { removals++; },
+  };
+  const h = experiment([], {
+    "resource:///modules/ExtensionSupport.sys.mjs": { ExtensionSupport: support },
+    "resource:///modules/MailServices.sys.mjs": { MailServices: { tags: {} } },
+  });
+  await h.api.enableFilterTags();
+  await h.api.enableFilterTags();
+  hook.onLoadWindow(win);
+  assert.equal(registrations, 1);
+  assert.equal(observed, 1);
+  assert.ok(events.has("load"));
+  h.instance.onShutdown(false);
+  assert.equal(removals, 1);
+  assert.equal(disconnected, 1);
+  assert.equal(events.size, 0);
+  hook.onUnloadWindow(win);
+  assert.equal(disconnected, 1);
+  await h.api.enableFilterTags();
+  assert.equal(registrations, 2);
+  assert.equal(observed, 2);
+  h.instance.onShutdown(false);
+});

@@ -41,7 +41,7 @@ function filter(name = "Newsletters", terms = [term()], changes = {}) {
   return Object.assign(result, changes);
 }
 
-function experiment(filters = [filter()]) {
+function experiment(filters = [filter()], modules = {}) {
   const list = {
     filters, saves: 0, failure: null,
     get filterCount() { return this.filters.length; },
@@ -53,11 +53,17 @@ function experiment(filters = [filter()]) {
   const windows = new Map([[42, { MsgFilters: (...args) => dialogs.push(args) }]]);
   const context = {
     extension: {
+      id: "sender-to-filter@fixture",
+      localeData: { localizeMessage: key => key },
       folderManager: { get: () => nativeFolder },
       windowManager: { get: id => ({ window: windows.get(id) }) },
     },
   };
   const sandbox = {
+    ChromeUtils: { importESModule: uri => {
+      if (!modules[uri]) throw new Error(`Unexpected module: ${uri}`);
+      return modules[uri];
+    } },
     Ci: constants,
     Cc: { "@mozilla.org/messenger/msgwindow;1": { createInstance: () => ({}) } },
     ExtensionCommon: { ExtensionAPI: class {} },
@@ -65,8 +71,9 @@ function experiment(filters = [filter()]) {
   };
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(path.join(root, "api/senderToFilter/implementation.js"), "utf8"), sandbox);
-  const api = new sandbox.senderToFilter().getAPI(context).senderToFilter;
-  return { api, list, filters, dialogs, windows, nativeFolder, context };
+  const instance = new sandbox.senderToFilter();
+  const api = instance.getAPI(context).senderToFilter;
+  return { api, instance, list, filters, dialogs, windows, nativeFolder, context };
 }
 
 function background(overrides = {}) {
@@ -116,6 +123,7 @@ function background(overrides = {}) {
       async abortList(id) { calls.aborts.push(id); },
     },
     senderToFilter: {
+      async enableFilterTags() { await overrides.enableFilterTags?.(); },
       async listFilters(folder, conditions) {
         calls.lists.push(plain({ folder, conditions }));
         return overrides.listFilters ? overrides.listFilters(folder, conditions) : [

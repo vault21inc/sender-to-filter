@@ -1,8 +1,8 @@
 {
   "name": "sender-to-filter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "A Thunderbird MailExtension for adding senders to existing filters.",
+  "description": "Add senders to Thunderbird filters and create tags in the filter editor.",
   "license": "MPL-2.0",
   "engines": { "node": ">=20" },
   "scripts": {
