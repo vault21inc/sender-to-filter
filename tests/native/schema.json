@@ -2,6 +2,7 @@
   {
     "namespace": "nativeTest",
     "functions": [
+      { "name": "checkInboxRun", "type": "function", "async": true, "parameters": [] },
       { "name": "checkSharedSpace", "type": "function", "async": true, "parameters": [] },
       { "name": "setupSharedRunFixtures", "type": "function", "async": true, "parameters": [] },
       { "name": "checkSharedManualRun", "type": "function", "async": true,
