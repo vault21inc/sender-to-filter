@@ -125,6 +125,10 @@ function background(overrides = {}) {
       async abortList(id) { calls.aborts.push(id); },
     },
     senderToFilter: {
+      onInboxRunRequested: { addListener: fn => { listeners.inboxRun = fn; } },
+      async runInboxFilters(...args) { await overrides.runInboxFilters?.(...args); },
+      async cancelInboxRun(...args) { await overrides.cancelInboxRun?.(...args); },
+      async enableInboxRunButton() { await overrides.enableInboxRunButton?.(); },
       onSharedRunRequested: { addListener: fn => { listeners.sharedRun = fn; } },
       async runSharedFilters(...args) { await overrides.runSharedFilters?.(...args); },
       async cancelSharedRun(...args) { await overrides.cancelSharedRun?.(...args); },
@@ -156,6 +160,7 @@ function background(overrides = {}) {
   return {
     browser, items, calls, storage,
     requestSharedRun: id => listeners.sharedRun(id),
+    requestInboxRun: id => listeners.inboxRun(id),
     shown: (messages, tab = defaultTab, id = null) => listeners.shown({ contexts: ["message_list"], selectedMessages: { messages, id } }, tab),
     click: (menuItemId, extras = {}, tab = defaultTab) => listeners.clicked({ menuItemId, ...extras }, tab),
     hide: () => listeners.hidden(),

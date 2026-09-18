@@ -216,6 +216,7 @@
   exports.senderToFilter = class extends ExtensionCommon.ExtensionAPI {
     getAPI(context) {
       this.sharedRunListeners ||= new Set();
+      this.inboxRunListeners ||= new Set();
       const resolveFolder = folder => {
         if (!folder || typeof folder.accountId !== "string" || typeof folder.path !== "string") {
           throw new Error("The selected message has no usable account folder.");
@@ -239,7 +240,7 @@
         if (!this.sharedAdapter) {
           Cu.importGlobalProperties(["TextEncoder", "TextDecoder", "crypto"]);
           const scope = { TextEncoder, TextDecoder, crypto, Ci, Cc, ChromeUtils, Services };
-          for (const path of ["lib/shared-model.js", "api/senderToFilter/shared-native.js", "api/senderToFilter/shared.js", "api/senderToFilter/shared-run.js", "api/senderToFilter/filter-list.js"]) {
+          for (const path of ["lib/shared-model.js", "api/senderToFilter/shared-native.js", "api/senderToFilter/shared.js", "api/senderToFilter/shared-run.js", "api/senderToFilter/filter-list.js", "api/senderToFilter/inbox-run.js"]) {
             Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve(path),
               { target: scope, charset: "UTF-8", allowUnsafeURL: true });
           }
@@ -249,6 +250,9 @@
           this.sharedHost = scope.createSharedNativeHost(context, model);
           this.sharedAdapter = scope.createSharedAdapter(model, this.sharedHost, normalizeConditions);
           this.sharedRunController = scope.createSharedRunController(model, this.sharedHost);
+          this.InboxRunControls = scope.InboxRunControls;
+          this.inboxRunController = scope.createInboxRunController(scope.createInboxRunHost());
+          this.inboxReadController = scope.createInboxRunController(scope.createInboxReadHost());
         }
         return this.sharedAdapter;
       };
@@ -264,6 +268,28 @@
 
       return {
         senderToFilter: {
+          onInboxRunRequested: new ExtensionCommon.EventManager({ context, name: "senderToFilter.onInboxRunRequested",
+            register: fire => {
+              const send = id => fire.async(id); this.inboxRunListeners.add(send);
+              return () => this.inboxRunListeners.delete(send);
+            },
+          }).api(),
+          runInboxFilters: async runId => this.inboxRunControls?.execute(runId),
+          cancelInboxRun: async runId => this.inboxRunControls?.cancel(runId, "unavailable"),
+          enableInboxRunButton: async () => {
+            if (this.inboxRunControls) return;
+            shared();
+            const controls = new this.InboxRunControls(context.extension, {
+              uuid: this.sharedHost.uuid, runner: this.inboxRunController, readRunner: this.inboxReadController,
+              changed: () => this.filterListIndicators?.refresh(),
+              request: id => {
+                const send = this.inboxRunListeners.values().next().value;
+                if (!send) throw new Error("Inbox run listener unavailable");
+                return send(id);
+              },
+            });
+            controls.start(); this.inboxRunControls = controls;
+          },
           onSharedRunRequested: new ExtensionCommon.EventManager({ context, name: "senderToFilter.onSharedRunRequested",
             register: fire => {
               const send = id => fire.async(id); this.sharedRunListeners.add(send);
@@ -290,6 +316,7 @@
             shared();
             const indicators = new this.FilterListIndicators(context.extension, this.sharedModel, {
               uuid: this.sharedHost.uuid, runner: this.sharedRunController,
+              isBusy: () => Boolean(this.inboxRunControls?.active),
               runLocal: (selection, control) => this.sharedHost.runFilters(selection.folder, selection.filters,
                 selection.list, selection.window, control),
               request: id => {
@@ -387,6 +414,8 @@
     }
 
     onShutdown(isAppShutdown) {
+      this.inboxRunControls?.stop();
+      this.inboxRunControls = null;
       this.filterListIndicators?.stop();
       this.filterListIndicators = null;
       this.filterTags?.stop();

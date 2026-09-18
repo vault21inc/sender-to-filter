@@ -103,7 +103,7 @@
         state.display = () => {
           const selected = Array.from(list.selectedItems || [], row => row._filter), enabled = this.enabledFilters(win);
           const hasShared = [...selected, ...enabled].some(filter => this.kind(filter));
-          const busy = Boolean(this.active || win.gRunningFilters), across = state.cross.checked;
+          const busy = Boolean(this.active || win.gRunningFilters || this.execution.isBusy?.()), across = state.cross.checked;
           const ready = filters => filters.length && (!this.needsFolder(filters, across) || (this.folder(win) && win.gCanFilterAfterTheFact !== false));
           const selectedTargets = this.targets(win, selected, across), enabledTargets = this.targets(win, enabled, across);
           const previewKey = `${selectedTargets}\n${enabledTargets}`;
@@ -137,7 +137,7 @@
         };
         win.updateButtons = state.updateButtons;
         state.command = event => {
-          if (this.active || win.gRunningFilters) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+          if (this.active || win.gRunningFilters || this.execution.isBusy?.()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
           const filters = Array.from(list.selectedItems || [], row => row._filter);
           if (!state.cross.checked || !filters.some(filter => this.kind(filter))) {
             state.message = null;
@@ -195,7 +195,7 @@
       else win.addEventListener("load", state.load, { once: true });
     }
     begin(win, state, filters, shared) {
-      if (this.active || win.gRunningFilters || !filters.length) return;
+      if (this.active || win.gRunningFilters || this.execution.isBusy?.() || !filters.length) return;
       if ((!shared || this.needsFolder(filters, true)) && (!this.folder(win) || win.gCanFilterAfterTheFact === false)) return;
       try {
         const id = this.execution.uuid();
