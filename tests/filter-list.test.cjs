@@ -79,6 +79,16 @@ test("native shared labels follow ownership, preserve native cells and show the 
   assert.equal(h.note(), undefined); assert.equal(h.head.children.length, 0); assert.equal(h.list.events.size, 0);
 });
 
+test("an all-Inboxes run disables both manager run actions until it releases its lock", () => {
+  let busy = true, runs = 0;
+  const h = fixture({ isBusy: () => busy, runLocal: async () => { runs++; } });
+  h.controls.start();
+  assert.equal(h.run.disabled, true); assert.equal(h.all().disabled, true);
+  h.all().events.get("command")({ preventDefault() {}, stopImmediatePropagation() {} });
+  assert.equal(runs, 0); assert.equal(h.controls.active, null);
+  busy = false; h.controls.refresh(); assert.equal(h.all().disabled, false); h.controls.stop();
+});
+
 test("selection counts, enabled counts and folder previews stay distinct and restore native labels on unload", () => {
   const h = fixture(), originalUpdate = h.win.updateButtons, column = h.win.document.getElementById("activeColumn");
   h.ordinary._filter.filterName = "School <test>"; h.controls.start();

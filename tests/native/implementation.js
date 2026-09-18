@@ -197,6 +197,14 @@
     getAPI(context) {
       let draftDriver = null;
       return { nativeTest: {
+        async checkInboxRun() {
+          const profile = await assertDisposable(), scope = { ChromeUtils, Ci, Cc, Cu, Services };
+          Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/inbox-run.js"), {
+            target: scope, charset: "UTF-8", allowUnsafeURL: true,
+          });
+          try { return await scope.checkInboxRun(context, profile); }
+          catch (error) { return { error: String(error), stack: error.stack }; }
+        },
         async checkSharedSpace() {
           const profile = await assertDisposable(), scope = { ChromeUtils, Ci, Cc, Cu, Services };
           Services.scriptloader.loadSubScriptWithOptions(context.extension.rootURI.resolve("native/shared-space.js"), {

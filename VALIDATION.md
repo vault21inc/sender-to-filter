@@ -1,5 +1,30 @@
 # Validation
 
+## Mark All Read toolbar action — September 18, 2026
+
+The current 1.2.0 package adds **Mark All Read** beside **Run Filters**. It marks each independent IMAP/POP account's Inbox read using Thunderbird's native folder operation, including accounts with no filters. Both actions share the operation queue and disable each other across mail tabs/windows.
+
+- **127 Node checks** and **8 Python runner checks** pass, together with production syntax/JSON, whitespace and actual-XPI inventory/source-hash checks. New cases cover filter-independent account scope, missing/virtual/deferred/changed Inbox preflight, native failures with partial results, captured action routing, cross-window exclusion and read-specific cancellation/error messages.
+- **165 native checks** pass on **Thunderbird 156.0 on macOS**, including successful seed/restart exits without timeouts. Evidence: `test-results/inbox-actions156-check.json` and `.log`.
+- The production toolbar was exercised with three synthetic POP accounts. All three Inboxes became read, including an account with no filters. Other folders' unread flags, message flags, selected folder, saved rule bytes and message counts were preserved. Repeated clicks and a competing filter click did not run additional actions. Existing filter-action coverage still passes.
+- Placement is Get Messages, Run Filters, Mark All Read, New Message. Both labels fit a 520-pixel folder pane; both compact buttons fit at 260 pixels without overflow. The actual screenshot `test-results/inbox-actions156-check-inboxes.png` was visually inspected.
+
+Tests use offline synthetic messages in a marked disposable profile and an updater-free temporary application copy. No real mail was processed or normal-profile add-on installed. Live IMAP synchronization, ESR 140/153, Windows and Linux were not exercised for this addition; Thunderbird manages server synchronization of read flags.
+
+## All-Inboxes toolbar button — September 18, 2026
+
+The 1.2.0 package adds **Run Filters** to the folder-pane toolbar, between Get Messages and New Message. It runs each independent IMAP/POP account’s own enabled manual filters on its Inbox, with no shared-group expansion or dependency on the selected folder.
+
+- **122 Node checks** pass, including account ordering, whole-run preflight, duplicate Inbox rejection, partial failure, stopping between accounts, stale accounts/requests, manual-only eligibility, shared-copy execution without expansion, queue ownership, cross-window click exclusion, listener/control cleanup and coexistence with Message Filters controls. The actual-XPI inventory/source-hash check is included.
+- **8 Python runner checks** pass. Production JavaScript syntax/JSON and whitespace checks pass.
+- **160 native checks** pass on **Thunderbird 156.0 on macOS**, including successful seed/restart exits with no timeout. Evidence: `test-results/inbox-run156-check.json` and `.log`.
+- Thirteen new native assertions exercise the production button and background bridge: placement beside Get Messages, visible label at 420 pixels, compact button without overflow at 260 pixels, existing/new mail tabs, immediate locking across tabs, queued cancellation without actions, all three synthetic POP Inboxes, each account’s own rules, exactly one copy per account despite repeated clicks/shared markers, exclusion of disabled and incoming-only rules, Stop Execution ordering, unchanged selected non-Inbox messages and unchanged saved rule bytes.
+- The actual Thunderbird toolbar screenshot is `test-results/inbox-run156-check-inboxes.png`. The native harness uses only offline synthetic messages in a marked disposable profile and an updater-free temporary application copy. New-profile onboarding is closed for the toolbar screenshot.
+
+The first fixture run exposed that `addMessage` itself executes incoming rules. The harness now seeds messages before installing its incoming-only exclusion rule, so manual filtering is measured independently of delivery. This change retains the incoming-only exclusion assertion.
+
+The new feature has not been run against the user’s real mail, a connected IMAP server, ESR 140/153, Windows or Linux. The existing manifest range is unchanged. No installation into the normal profile or publication was performed during validation.
+
 ## Shared filters — 1.2.0 candidate, September 16, 2026
 
 The full model, native adapter, coordinator, manager and shared sender menu are implemented and included in `dist/sender-to-filter-1.2.0.xpi`. Baseline was `45502831acd1e96d2d35343c0e88e28cdfafde68` / 1.1.0. The historical checkpoints below describe earlier states, not the current runtime.

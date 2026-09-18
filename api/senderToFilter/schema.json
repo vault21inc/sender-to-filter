@@ -852,12 +852,31 @@
     ],
     "events": [
       {
+        "name": "onInboxRunRequested", "type": "function",
+        "description": "A user clicked an all-Inboxes toolbar action in a mail tab.",
+        "parameters": [{ "name": "runId", "type": "string" }]
+      },
+      {
         "name": "onSharedRunRequested", "type": "function",
         "description": "A user explicitly requested a shared run in a native filter window.",
         "parameters": [{ "name": "runId", "type": "string" }]
       }
     ],
     "functions": [
+      {
+        "name": "enableInboxRunButton", "type": "function", "async": true,
+        "description": "Add Run Filters and Mark All Read beside Get Messages in each mail tab.",
+        "parameters": []
+      },
+      {
+        "name": "runInboxFilters", "type": "function", "async": true,
+        "description": "Execute the captured filter or mark-read request while holding the shared operation queue.",
+        "parameters": [{ "name": "runId", "type": "string" }]
+      },
+      {
+        "name": "cancelInboxRun", "type": "function", "async": true,
+        "parameters": [{ "name": "runId", "type": "string" }]
+      },
       {
         "name": "runSharedFilters", "type": "function", "async": true,
         "description": "Execute a captured native Run Now request against validated shared groups.",

@@ -27,6 +27,13 @@
   const sharedReady = shared ? shared.start() : Promise.resolve();
   sharedReady.catch(() => console.error("Shared filters could not initialize."));
   if (shared) {
+    // Both Inbox toolbar actions use the same captured-request bridge and queue.
+    browser.senderToFilter.onInboxRunRequested.addListener(async runId => {
+      try {
+        await sharedReady;
+        await shared.exclusive(() => browser.senderToFilter.runInboxFilters(runId));
+      } catch { await browser.senderToFilter.cancelInboxRun(runId).catch(() => {}); }
+    });
     browser.senderToFilter.onSharedRunRequested.addListener(async runId => {
       try {
         await sharedReady;
@@ -101,6 +108,8 @@
     console.error("Sender to Filter could not enable filter tag creation:", error));
   browser.senderToFilter.enableSharedFilterIndicators().catch(() =>
     console.error("Sender to Filter could not enable shared filter indicators."));
+  browser.senderToFilter.enableInboxRunButton().catch(() =>
+    console.error("Sender to Filter could not enable the Inbox action buttons."));
 
   const active = gen => gen === currentGen && menuOpen;
 

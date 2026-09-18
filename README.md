@@ -10,6 +10,20 @@ In Thunderbird's **Filter Rules** dialog, choose a **Tag Message** action and cl
 
 Cancelling the tag dialog creates nothing. Once created, a tag is available throughout Thunderbird and remains available even if you cancel the filter editor. Filter changes are saved only when you accept the filter dialog. Creating tags does not depend on the sender-addition eligibility rules above.
 
+**Run filters on every Inbox**
+
+Click **Run Filters** beside **Get Messages**, before **New Message**, at the top of the folder pane. In a narrow sidebar the button shows its filter/play icon; its tooltip and accessible name say **Run filters on all accounts’ Inboxes**.
+
+One click runs each independent IMAP/POP account’s enabled manual filters against that account’s Inbox, in its own saved filter order. This includes ordinary filters and each account’s local shared copies, once each. It does not expand shared groups or depend on the selected folder, message, or account. Disabled, temporary, unparseable and incoming-only filters are excluded; accounts with no eligible filters need no run. Local Folders, news/feed and other account types are not targets. A participating deferred POP/Global Inbox account, missing Inbox, open Filter Rules editor or active Message Filters run blocks execution with an explanation.
+
+Accounts run sequentially. Progress appears below the toolbar, and the button is disabled in every mail tab/window until the run finishes. **Stop** finishes the current Inbox and skips the remaining accounts; it does not undo processed messages. Errors report partial work without automatically retrying message actions. Saved filters, enabled states and shared definitions are not changed. As with Thunderbird’s native manual filtering, matching messages receive the actions configured in those rules.
+
+**Mark every Inbox read**
+
+Click **Mark All Read** beside **Run Filters** to mark all messages in every independent IMAP/POP account’s Inbox as read, including accounts with no filters. This uses Thunderbird’s native folder operation. Other folders, flags, filter rules and the selected folder stay unchanged; IMAP read flags synchronize through Thunderbird normally, including after reconnecting when used offline.
+
+Both toolbar actions are disabled across mail tabs/windows while either runs. The status below the toolbar reports completion or partial work. **Stop** skips any remaining Inboxes. As with Run Filters, unavailable Inboxes and deferred POP/Global Inbox accounts prevent the action from starting and show an explanation. Narrow sidebars show compact icons with tooltips that explicitly identify the all-account Inbox scope.
+
 **Install**
 
 1. Download/build `sender-to-filter-1.2.0.xpi`.
@@ -18,7 +32,7 @@ Cancelling the tag dialog creates nothing. Once created, a tag is available thro
 
 For development, use Debug Add-ons → Load Temporary Add-on and select `manifest.json`. Reload the temporary add-on after changes. Thunderbird's Error Console shows startup and menu errors.
 
-The add-on uses an Experiment API because Thunderbird's public extension APIs do not expose message filters or controls inside the native filter editor. Thunderbird consequently requests **full, unrestricted access to Thunderbird and your computer**. The implementation operates locally on filters and tags; it makes no network requests and has no telemetry. Disabling/uninstalling the add-on removes its editor buttons and leaves saved filter changes and created tags in place.
+The add-on uses an Experiment API because Thunderbird's public extension APIs do not expose message filters or controls inside the native filter editor. Thunderbird consequently requests **full, unrestricted access to Thunderbird and your computer**. The implementation uses Thunderbird's services for filter, tag and message operations; it uses no external service and has no telemetry. Disabling/uninstalling the add-on removes its controls and leaves saved filter changes, created tags and processed messages in place.
 
 The manifest targets Thunderbird **140 through 156**, covering ESR 140, ESR 153, and release 156. This version range is an intended compatibility scope. See `VALIDATION.md` for what was actually checked; a manifest declaration alone is not a runtime test.
 

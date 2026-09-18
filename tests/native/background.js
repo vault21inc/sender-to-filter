@@ -64,6 +64,9 @@
     const tagChecks = await browser.nativeTest.checkFilterTags();
     if (!Array.isArray(tagChecks)) throw new Error(JSON.stringify(tagChecks));
     checks.push(...tagChecks);
+    const inboxChecks = await browser.nativeTest.checkInboxRun();
+    if (!Array.isArray(inboxChecks)) throw new Error(JSON.stringify(inboxChecks));
+    checks.push(...inboxChecks);
     if (stage.phase === "seed") {
       shared = await browser.nativeTest.checkSharedPrerequisites("seed");
       checks.push(...shared.checks);

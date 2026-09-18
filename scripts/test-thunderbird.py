@@ -187,6 +187,9 @@ def main():
         shared_space_screenshot = profile / "native-shared-space.png"
         if shared_space_screenshot.exists():
             output.with_name(output.stem + "-shared-space.png").write_bytes(shared_space_screenshot.read_bytes())
+        inbox_screenshot = profile / "native-inbox-run.png"
+        if inbox_screenshot.exists():
+            output.with_name(output.stem + "-inboxes.png").write_bytes(inbox_screenshot.read_bytes())
         print(json.dumps(result, indent=2))
         if not result["ok"]:
             print(log_text[-12000:])
